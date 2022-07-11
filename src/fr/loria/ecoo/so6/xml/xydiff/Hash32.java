@@ -17,7 +17,8 @@
  */
 package fr.loria.ecoo.so6.xml.xydiff;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /*
@@ -53,6 +54,7 @@ public class Hash32 {
         this.value = str.hashCode();
     }
 
+    @Override
     public Object clone() {
         return new Hash32(this.value);
     }
@@ -61,6 +63,7 @@ public class Hash32 {
         return Integer.toHexString(this.value);
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o instanceof Hash32) {
             return this.value == ((Hash32) o).value;
@@ -69,6 +72,7 @@ public class Hash32 {
         return false;
     }
 
+    @Override
     public String toString() {
         return toHexString();
     }
@@ -76,9 +80,7 @@ public class Hash32 {
     public static void main(String[] args) {
         System.out.println((new Hash32("TUTU")).equals(new Hash32("TUTU")));
 
-        Hashtable h = new Hashtable();
-
-        Hash32 j = new Hash32("TUTU");
+        Map<String, String> h = new HashMap<>();
 
         h.put((new Hash32("TUTU").toString()), "fff");
         System.out.println(h.containsKey((new Hash32("TUTU").toString())));

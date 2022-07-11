@@ -17,16 +17,17 @@
  */
 package fr.loria.ecoo.so6.xml.node;
 
-import fr.loria.ecoo.so6.xml.xydiff.Hash32;
-
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map.Entry;
 
-import java.util.Enumeration;
-import java.util.Iterator;
+import fr.loria.ecoo.so6.xml.xydiff.Hash32;
 
 
 public class ElementNode extends AbstractTreeNode {
+
+    private static final long serialVersionUID = 1L;
+
     private String elementName;
 
     public ElementNode(String elementName) {
@@ -38,10 +39,12 @@ public class ElementNode extends AbstractTreeNode {
         this.elementName = name;
     }
 
+    @Override
     public String getElementName() {
         return this.elementName;
     }
 
+    @Override
     public void exportXML(Writer writer, boolean split)
         throws IOException {
         // write elements
@@ -49,12 +52,12 @@ public class ElementNode extends AbstractTreeNode {
         writer.write(elementName);
 
         // write attributes
-        for (Enumeration e = attributes.keys(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
+        for (Entry<String, String> e : attributes.entrySet()) {
+            String key = e.getKey();
             writer.write(" ");
             writer.write(key);
 
-            String attrValue = (String) attributes.get(key);
+            String attrValue = e.getValue();
 
             if (attrValue.indexOf("\"") == -1) {
                 writer.write("=\"");
@@ -74,8 +77,7 @@ public class ElementNode extends AbstractTreeNode {
             writer.write(">");
 
             // write children
-            for (Iterator i = children.iterator(); i.hasNext();) {
-                TreeNode node = (TreeNode) i.next();
+            for (TreeNode node : children) {
                 node.exportXML(writer, split);
             }
 
@@ -88,35 +90,32 @@ public class ElementNode extends AbstractTreeNode {
         writer.flush();
     }
 
+    @Override
     public boolean equalsContent(Object obj) {
         if (obj instanceof ElementNode) {
             ElementNode elementObj = (ElementNode) obj;
 
             // check element name
-            if (!elementObj.elementName.equals(elementName)) {
-                return false;
-            }
-
             // check attributes
-            if (elementObj.attributes.size() != attributes.size()) {
+            if (!elementObj.elementName.equals(elementName) || (elementObj.attributes.size() != attributes.size())) {
                 return false;
             }
 
-            for (Enumeration e = attributes.keys(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Entry<String, String> e : attributes.entrySet()) {
+                String key = e.getKey();
 
-                if (!((String) elementObj.attributes.get(key)).equals((String) attributes.get(key))) {
+                if (!elementObj.attributes.get(key).equals(e.getValue())) {
                     return false;
                 }
             }
 
             // check children
             return super.equalsContent(obj);
-        } else {
-            return false;
         }
+        return false;
     }
 
+    @Override
     public Hash32 getHash32() {
         String s = getElementName();
 

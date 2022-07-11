@@ -30,13 +30,15 @@ public class XMLParserWFTest extends TestCase {
     private String path;
     private boolean ok;
 
+    @Override
     protected void setUp() throws Exception {
         baseDir = "./test/wf";
         ok = false;
     }
 
+    @Override
     protected void tearDown() throws Exception {
-        if (ok == false) {
+        if (!ok) {
             System.out.println(path);
         }
     }

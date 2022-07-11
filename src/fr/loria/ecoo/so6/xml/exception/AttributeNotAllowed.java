@@ -18,6 +18,9 @@
 package fr.loria.ecoo.so6.xml.exception;
 
 public class AttributeNotAllowed extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
     public AttributeNotAllowed() {
         super();
     }

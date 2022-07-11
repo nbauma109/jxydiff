@@ -17,33 +17,31 @@
  */
 package fr.loria.ecoo.xml.parser.test;
 
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 import fr.loria.ecoo.so6.xml.node.Document;
 import fr.loria.ecoo.so6.xml.util.SmallFileUtils;
 import fr.loria.ecoo.so6.xml.util.XmlUtil;
 
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
-
 
 public class EncodingTest {
     public static void main(String[] args) {
-        try {
-            FileInputStream fis = new FileInputStream(args[0]);
-            InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+        try (FileInputStream fis = new FileInputStream(args[0]);
+            InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
 
             byte[] buffer = new byte[fis.available()];
             fis.read(buffer);
-            fis.close();
 
             String c = new String(buffer);
             char[] tab = c.toCharArray();
 
-            FileWriter writer = new FileWriter(args[1]);
-            writer.write(tab);
-            writer.close();
-
-            Document doc = null;
+            try (FileWriter writer = new FileWriter(args[1])) {
+                writer.write(tab);
+            }
+            Document doc;
 
             doc = XmlUtil.load(args[0]);
 

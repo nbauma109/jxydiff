@@ -49,7 +49,7 @@ public class XMLParserTest extends TestCase {
 		DeltaConstructor delta = diff.diff();
 		
 		Collection xmlCommands = delta.getXMLCommand();
-		List<XMLCommand> lCommands = new ArrayList<XMLCommand>(xmlCommands);
+		List<XMLCommand> lCommands = new ArrayList<>(xmlCommands);
 		
 		assertEquals(1, lCommands.size());
 		assertTrue(lCommands.get(0) instanceof InsertNode);

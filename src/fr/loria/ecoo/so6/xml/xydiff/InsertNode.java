@@ -18,6 +18,7 @@
 package fr.loria.ecoo.so6.xml.xydiff;
 
 import fr.loria.ecoo.so6.xml.node.ElementNode;
+import fr.loria.ecoo.so6.xml.node.Path;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
 import fr.loria.ecoo.so6.xml.util.XmlUtil;
 
@@ -27,8 +28,8 @@ public class InsertNode extends XMLCommand {
     private boolean isMoved;
     private boolean isUpdated;
 
-    public InsertNode(String nodePath, TreeNode node) {
-        super(nodePath);
+    public InsertNode(Path path, TreeNode node) {
+        super(path);
         this.node = node;
         this.type = XMLCommand.INSERT_NODE;
         this.isMoved = false;
@@ -59,24 +60,27 @@ public class InsertNode extends XMLCommand {
         this.node = node;
     }
 
+    @Override
     public String toString() {
-        String s = ("InsertNode: " + this.node.toString() + " path " + this.nodePath);
+        StringBuilder s = new StringBuilder("InsertNode: ").append(this.node.toString()).append(" path ").append(this.nodePath);
 
         if (this.isMoved) {
-            s += " (move)";
+            s.append(" (move)");
         }
 
         if (this.isUpdated) {
-            s += " (update)";
+            s.append(" (update)");
         }
 
-        return s;
+        return s.toString();
     }
 
+    @Override
     public ElementNode toXML() {
         try {
             ElementNode i = new ElementNode("Inserted");
-            i.setAttribute("pos", this.nodePath);
+            i.setAttribute("pos", this.nodePath.getNumericPath());
+            i.setAttribute("path", this.nodePath.getPseudoXPath());
 
             if (this.isMoved) {
                 i.setAttribute("move", "yes");

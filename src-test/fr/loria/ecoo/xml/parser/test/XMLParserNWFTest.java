@@ -34,13 +34,15 @@ public class XMLParserNWFTest extends TestCase {
         super(arg0);
     }
 
+    @Override
     protected void setUp() throws Exception {
         baseDir = "./test/nwf";
         ok = false;
     }
 
+    @Override
     protected void tearDown() throws Exception {
-        if (ok == true) {
+        if (ok) {
             System.out.println(path);
         }
     }

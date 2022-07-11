@@ -23,11 +23,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-
-import java.util.Iterator;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 
 public class Document extends AbstractTreeNode {
+
+    private static final long serialVersionUID = 1L;
+
+    private static final String VERSION = "version";
+    private static final String ENCODING = "encoding";
+
     public Document() {
         this("1.0", null);
     }
@@ -36,28 +42,28 @@ public class Document extends AbstractTreeNode {
         super(true, true);
 
         if (encoding != null) {
-            this.setAttribute("encoding", encoding);
+            this.setAttribute(ENCODING, encoding);
         }
 
         if (version != null) {
-            this.setAttribute("version", version);
+            this.setAttribute(VERSION, version);
         }
     }
 
     public String getVersion() {
-        return (String) attributes.get("version");
+        return attributes.get(VERSION);
     }
 
     public String getEncoding() {
-        return (String) attributes.get("encoding");
+        return attributes.get(ENCODING);
     }
 
     public void setEncoding(String encoding) {
-        attributes.put("encoding", encoding);
+        attributes.put(ENCODING, encoding);
     }
 
     public String getStandalone() {
-        return (String) attributes.get("standalone");
+        return attributes.get("standalone");
     }
 
     public void setStandalone(String standalone) {
@@ -65,7 +71,7 @@ public class Document extends AbstractTreeNode {
     }
 
     public void setVersion(String version) {
-        attributes.put("version", version);
+        attributes.put(VERSION, version);
     }
 
     public void save(String fileName) throws IOException {
@@ -73,22 +79,16 @@ public class Document extends AbstractTreeNode {
     }
 
     public void save(String fileName, boolean split) throws IOException {
-        FileOutputStream fos = new FileOutputStream(fileName);
-        String charset = getEncoding();
-        OutputStreamWriter writer;
-
-        if (charset != null) {
-            writer = new OutputStreamWriter(fos, charset);
-        } else {
-            writer = new OutputStreamWriter(fos, "UTF-8");
+        String encoding = getEncoding();
+        Charset charset = encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding);
+        try (FileOutputStream fos = new FileOutputStream(fileName);
+             OutputStreamWriter writer = new OutputStreamWriter(fos, charset)) {
+            exportXML(writer, split);
+            writer.flush();
         }
-
-        exportXML(writer, split);
-        writer.flush();
-        writer.close();
-        fos.close();
     }
 
+    @Override
     public void exportXML(Writer writer, boolean split)
         throws IOException {
         // write header
@@ -111,17 +111,22 @@ public class Document extends AbstractTreeNode {
         writer.write("?>");
 
         // write children
-        for (Iterator i = children.iterator(); i.hasNext();) {
-            TreeNode node = (TreeNode) i.next();
+        for (TreeNode node : children) {
             node.exportXML(writer, split);
         }
 
         writer.flush();
     }
 
+    @Override
     public Hash32 getHash32() {
         String s = getVersion() + "|" + getEncoding() + "|" + getStandalone();
 
         return new Hash32(s);
+    }
+
+    @Override
+    public String getElementName() {
+        return "";
     }
 }

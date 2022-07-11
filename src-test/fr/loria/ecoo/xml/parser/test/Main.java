@@ -27,60 +27,59 @@ import java.util.zip.ZipInputStream;
 
 
 public class Main {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         /*
          * Main method who writes a file with a
          * different name for each file in the archive and write the XML
          * declaration if it was not present
          */
         File file = new File(args[0]);
-        ZipFile zip = new ZipFile(file);
-        FileInputStream fis = new FileInputStream(file);
-        ZipInputStream zis = new ZipInputStream(fis);
+        try (ZipFile zip = new ZipFile(file);
+             FileInputStream fis = new FileInputStream(file);
+             ZipInputStream zis = new ZipInputStream(fis)) {
 
-        int size = zip.size();
-        int count = 0;
-        String baseDir = file.getParent();
-        String name = new String();
-
-        for (int i = 0; i < size; i++) {
-            ZipEntry entry = zis.getNextEntry();
-
-            if (!entry.isDirectory()) {
-                // Read
-                count++;
-                name = entry.getName();
-                System.out.println(name);
-
-                //long s = entry.getSize();
-                byte[] buffer = new byte[1024];
-                int read = 0;
-
-                // Write
-                String path = baseDir + File.separator + "file" + count + ".xml";
-                FileOutputStream fos = new FileOutputStream(path);
-
-                read = zis.read(buffer, 0, 5);
-
-                if (!(new String(buffer).startsWith("<?xml"))) {
-                    String decl = "<?xml version=\"1.0\"?>\n";
-                    byte[] decl_buffer = decl.getBytes();
-                    fos.write(decl_buffer);
+            int size = zip.size();
+            int count = 0;
+            String baseDir = file.getParent();
+            String name = "";
+    
+            for (int i = 0; i < size; i++) {
+                ZipEntry entry = zis.getNextEntry();
+    
+                if (!entry.isDirectory()) {
+                    // Read
+                    count++;
+                    name = entry.getName();
+                    System.out.println(name);
+    
+                    //long s = entry.getSize();
+                    byte[] buffer = new byte[1024];
+                    int read = 0;
+    
+                    // Write
+                    String path = baseDir + File.separator + "file" + count + ".xml";
+                    try (FileOutputStream fos = new FileOutputStream(path)) {
+                        read = zis.read(buffer, 0, 5);
+   
+                        if (!(new String(buffer).startsWith("<?xml"))) {
+                            String decl = "<?xml version=\"1.0\"?>\n";
+                            byte[] decl_buffer = decl.getBytes();
+                            fos.write(decl_buffer);
+                        }
+   
+                        fos.write(buffer, 0, read);
+   
+                        while ((read = zis.read(buffer)) != -1) {
+                            fos.write(buffer, 0, read);
+                        }
+                    }
+    
+                    zis.closeEntry();
                 }
-
-                fos.write(buffer, 0, read);
-
-                while ((read = zis.read(buffer)) != -1) {
-                    fos.write(buffer, 0, read);
-                }
-
-                zis.closeEntry();
-                fos.close();
             }
+        } catch (Exception e) {
+            System.err.println(e);
         }
-
-        zis.close();
-
         // ------------------------------------------------------- //
         // Test phase
 

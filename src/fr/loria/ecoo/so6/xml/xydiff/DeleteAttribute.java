@@ -18,13 +18,14 @@
 package fr.loria.ecoo.so6.xml.xydiff;
 
 import fr.loria.ecoo.so6.xml.node.ElementNode;
+import fr.loria.ecoo.so6.xml.node.Path;
 
 
 public class DeleteAttribute extends XMLCommand {
     private String name;
 
-    public DeleteAttribute(String nodePath, String name) {
-        super(nodePath);
+    public DeleteAttribute(Path path, String name) {
+        super(path);
         this.name = name;
         this.type = XMLCommand.DELETE_ATTRIBUTE;
     }
@@ -37,14 +38,17 @@ public class DeleteAttribute extends XMLCommand {
         this.name = name;
     }
 
+    @Override
     public String toString() {
         return ("DeleteAttribute: " + this.name + " path " + this.nodePath);
     }
 
+    @Override
     public ElementNode toXML() {
         try {
             ElementNode ad = new ElementNode("AttributeDeleted");
-            ad.setAttribute("pos", this.nodePath);
+            ad.setAttribute("pos", this.nodePath.getNumericPath());
+            ad.setAttribute("path", this.nodePath.getPseudoXPath());
             ad.setAttribute("name", name);
 
             return ad;

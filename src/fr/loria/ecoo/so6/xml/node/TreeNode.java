@@ -17,80 +17,81 @@
  */
 package fr.loria.ecoo.so6.xml.node;
 
-import fr.loria.ecoo.so6.xml.xydiff.Hash32;
-
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
+import java.util.Map;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
+import fr.loria.ecoo.so6.xml.xydiff.Hash32;
 
 
 public interface TreeNode {
     // Tree manipulation
-    public TreeNode getParent();
+    TreeNode getParent();
 
-    public void setParent(TreeNode parent);
+    void setParent(TreeNode parent);
 
-    public ArrayList getChildren();
+    List<TreeNode> getChildren();
 
-    public TreeNode getChild(int childPos);
+    TreeNode getChild(int childPos);
 
-    public void insertChild(int pos, TreeNode child);
+    void insertChild(int pos, TreeNode child);
 
-    public boolean removeChild(TreeNode child);
+    boolean removeChild(TreeNode child);
 
-    public TreeNode removeChild(int pos);
+    TreeNode removeChild(int pos);
 
-    public void appendChild(TreeNode child);
+    void appendChild(TreeNode child);
 
-    public int getChildPosition(TreeNode child);
+    int getChildPosition(TreeNode child);
 
-    public void computePath();
+    void computePath();
 
-    public String getPath();
+    Path getPath();
 
-    public String getLastComputedPath();
+    Path getLastComputedPath();
 
-    public TreeNode getNextSibling();
+    TreeNode getNextSibling();
 
-    public TreeNode getPreviousSibling();
+    TreeNode getPreviousSibling();
 
-    public TreeNode getFirstChild();
+    TreeNode getFirstChild();
 
-    public TreeNode getLastChild();
+    TreeNode getLastChild();
 
-    public Hashtable getAttributes();
+    Map<String, String> getAttributes();
 
-    public String getAttribute(String name);
+    String getAttribute(String name);
 
-    public void setAttribute(String name, String vlaue);
+    void setAttribute(String name, String vlaue);
 
-    public void removeAttribute(String name);
+    void removeAttribute(String name);
 
-    public boolean hasAttributes();
+    boolean hasAttributes();
 
-    public boolean hasChildren();
+    boolean hasChildren();
 
     // XyDiff requirement
-    public double getWeight();
+    double getWeight();
 
-    public Hash32 getHash32();
+    Hash32 getHash32();
 
-    public String getId();
+    String getId();
 
     // Xml export
-    public void exportXML(Writer writer, boolean split)
+    void exportXML(Writer writer, boolean split)
         throws IOException;
 
     // XML serialization
-    public void toBase64(Writer osw) throws IOException;
+    void toBase64(Writer osw) throws IOException;
 
     // Node content comparison
-    public boolean equalsContent(Object node);
+    boolean equalsContent(Object node);
 
     // Node content
-    public boolean allowAttributes();
+    boolean allowAttributes();
 
-    public boolean allowChildren();
+    boolean allowChildren();
+
+    String getElementName();
 }

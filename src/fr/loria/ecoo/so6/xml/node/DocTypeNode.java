@@ -22,6 +22,9 @@ import java.io.Writer;
 
 
 public class DocTypeNode extends TextNode {
+
+    private static final long serialVersionUID = 1L;
+
     public DocTypeNode() {
         super();
     }
@@ -30,6 +33,7 @@ public class DocTypeNode extends TextNode {
         super(content);
     }
 
+    @Override
     public void exportXML(Writer writer, boolean split)
         throws IOException {
         writer.write("<!DOCTYPE");

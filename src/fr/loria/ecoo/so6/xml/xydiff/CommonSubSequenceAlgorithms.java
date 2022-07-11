@@ -17,7 +17,7 @@
  */
 package fr.loria.ecoo.so6.xml.xydiff;
 
-import java.util.Vector;
+import java.util.List;
 
 
 public class CommonSubSequenceAlgorithms {
@@ -53,55 +53,51 @@ public class CommonSubSequenceAlgorithms {
 
     //	   translation done by Tani
     // s1 and s2 are vector of WSequence
-    public static void easy_css(Vector s1, Vector s2) {
+    public static void easy_css(List<WSequence> originalSequence, List<WSequence> finalSequence) {
         int cursor1 = 1;
         int cursor2 = 1;
 
-        while ((cursor1 < s1.size()) && (cursor2 < s2.size())) {
-            if (((WSequence) s1.get(cursor1)).getData() == 0) {
+        while ((cursor1 < originalSequence.size()) && (cursor2 < finalSequence.size())) {
+            if (originalSequence.get(cursor1).getData() == 0) {
                 //System.out.println("s1[" + cursor1 + "] is already removed");
                 cursor1++;
             } else {
-                if (((WSequence) s2.get(cursor2)).getData() == 0) {
-                    //System.out.println("s2[" + cursor2 + "] is already removed ... but how is that possible????");
-                    cursor2++;
+                if (finalSequence.get(cursor2).getData() == 0) {
+                    System.out.println("s2[" + cursor2 + "] is already removed ... but how is that possible????");
+                } else if (originalSequence.get(cursor1).getData() == finalSequence.get(cursor2).getData()) {
+                    //System.out.println("Ok s1[" + cursor1 + "]==s2[" + cursor2 + "]");
+                    cursor1++;
                 } else {
-                    if (((WSequence) s1.get(cursor1)).getData() == ((WSequence) s2.get(cursor2)).getData()) {
-                        //System.out.println("Ok s1[" + cursor1 + "]==s2[" + cursor2 + "]");
-                        cursor1++;
-                        cursor2++;
-                    } else {
-                        //System.out.println("Throwing away s2[" + cursor2 + "]");
-                        ((WSequence) s1.get(((WSequence) s2.get(cursor2)).getData())).setData(0);
-                        ((WSequence) s2.get(cursor2)).setData(0);
-                        cursor2++;
-                    }
+                    //System.out.println("Throwing away s2[" + cursor2 + "]");
+                    originalSequence.get(finalSequence.get(cursor2).getData()).setData(0);
+                    finalSequence.get(cursor2).setData(0);
                 }
+                cursor2++;
             }
         }
     }
 
-    public static void lcss(Vector s1, Vector s2) {
+    public static void lcss(List<WSequence> originalSequence, List<WSequence> finalSequence) {
         // Init
-        int l1 = s1.size();
-        int l2 = s2.size();
+        int l1 = originalSequence.size();
+        int l2 = finalSequence.size();
         Double[][] cost = new Double[l2][l1];
         Character[][] origin = new Character[l2][l1];
 
         // Transforming empty string into empty string has no cost
-        cost[0][0] = new Double(0.0);
-        origin[0][0] = new Character('Z');
+        cost[0][0] = 0.0;
+        origin[0][0] = 'Z';
 
         // Transforming empty parts of S1 into string is just deleting
         for (int i = 1; i < l1; i++) {
-            cost[0][i] = new Double(cost[0][i - 1].doubleValue() + ((WSequence) s1.get(i)).getWeight());
-            origin[0][i] = new Character('A');
+            cost[0][i] = cost[0][i - 1].doubleValue() + originalSequence.get(i).getWeight();
+            origin[0][i] = 'A';
         }
 
         // Transforming empty string into parts of S2 is just inserting
         for (int j = 1; j < l2; j++) {
-            cost[j][0] = new Double(cost[j - 1][0].doubleValue() + ((WSequence) s2.get(j)).getWeight());
-            origin[j][0] = new Character('B');
+            cost[j][0] = cost[j - 1][0].doubleValue() + finalSequence.get(j).getWeight();
+            origin[j][0] = 'B';
         }
 
         // Compute paths cost which transforms S1 into S2
@@ -109,37 +105,33 @@ public class CommonSubSequenceAlgorithms {
             for (int i = 1; i < l1; i++) {
                 //System.out.println("Computing cost(i=" + i + ",j=" + j + ")");
                 // Delete item i in S1 and use transformation of S1[1..i-1] into S2[1..j]
-                double deleteCost = ((WSequence) s1.get(i)).getWeight() + cost[j][i - 1].doubleValue();
+                double deleteCost = originalSequence.get(i).getWeight() + cost[j][i - 1].doubleValue();
 
                 //System.out.println("Delete cost is " + deleteCost);
                 // Use transformation of S1[i..i] into S2[1..j-1] and insert S2[j]
-                double insertCost = cost[j - 1][i].doubleValue() + ((WSequence) s2.get(j)).getWeight();
+                double insertCost = cost[j - 1][i].doubleValue() + finalSequence.get(j).getWeight();
 
                 //System.out.println("Insert cost is " + insertCost);
-                if (((WSequence) s1.get(i)).getData() != ((WSequence) s2.get(j)).getData()) {
+                if (originalSequence.get(i).getData() != finalSequence.get(j).getData()) {
                     if (deleteCost < insertCost) {
-                        cost[j][i] = new Double(deleteCost);
-                        origin[j][i] = new Character('A');
+                        cost[j][i] = deleteCost;
+                        origin[j][i] = 'A';
                     } else {
-                        cost[j][i] = new Double(insertCost);
-                        origin[j][i] = new Character('B');
+                        cost[j][i] = insertCost;
+                        origin[j][i] = 'B';
                     }
                 } else {
-                    double keep = cost[j - 1][i - 1].doubleValue();
+                    double keep = cost[j - 1][i - 1];
 
                     //System.out.println("Keep cost is " + keep);
-                    origin[j][i] = new Character(getMin3(deleteCost, insertCost, keep));
+                    origin[j][i] = getMin3(deleteCost, insertCost, keep);
 
                     if (origin[j][i].charValue() == 'A') {
-                        cost[i][j] = new Double(deleteCost);
-                    } else {
-                        if (origin[j][i].charValue() == 'B') {
-                            cost[j][i] = new Double(insertCost);
-                        } else {
-                            if (origin[j][i].charValue() == 'C') {
-                                cost[j][i] = new Double(keep);
-                            }
-                        }
+                        cost[i][j] = deleteCost;
+                    } else if (origin[j][i].charValue() == 'B') {
+                        cost[j][i] = insertCost;
+                    } else if (origin[j][i].charValue() == 'C') {
+                        cost[j][i] = keep;
                     }
 
                     //System.out.println("Cost(i=" + i + ",j=" + j + ") ,via " + cost[j][i].doubleValue() + ", " + origin[j][i].charValue());
@@ -159,11 +151,11 @@ public class CommonSubSequenceAlgorithms {
                 }
 
                 //System.out.println("At (i=" + i + ",j=" + j + ") cost= " + cost[j][i].doubleValue() + " origin= " + origin[j][i].charValue());
-                switch (origin[j][i].charValue()) {
+                switch (origin[j][i]) {
                 case 'A':
 
                     //System.out.println("Delete " + ((WSequence) s1.get(i)).getData());
-                    ((WSequence) s1.get(i)).setData(0);
+                    originalSequence.get(i).setData(0);
                     i--;
                     balance++;
 
@@ -172,7 +164,7 @@ public class CommonSubSequenceAlgorithms {
                 case 'B':
 
                     //System.out.println("Insert " + ((WSequence) s2.get(j)).getData());
-                    ((WSequence) s2.get(j)).setData(0);
+                    finalSequence.get(j).setData(0);
                     j--;
                     balance--;
 
@@ -181,7 +173,7 @@ public class CommonSubSequenceAlgorithms {
                 case 'C':
 
                     try {
-                        if (((WSequence) s1.get(i)).getData() != ((WSequence) s2.get(j)).getData()) {
+                        if (originalSequence.get(i).getData() != finalSequence.get(j).getData()) {
                             throw new Exception("Inconsistant computing: Character not equal as supposed!");
                         }
 

@@ -17,33 +17,36 @@
  */
 package fr.loria.ecoo.so6.xml.xydiff;
 
+import java.util.Iterator;
+
 import fr.loria.ecoo.so6.xml.node.ElementNode;
+import fr.loria.ecoo.so6.xml.node.Path;
+import fr.loria.ecoo.so6.xml.node.PathElement;
 
-import java.util.StringTokenizer;
 
-
-public abstract class XMLCommand implements Comparable {
-    public final static int INSERT_ATTRIBUTE = 3;
-    public final static int DELETE_ATTRIBUTE = 4;
-    public final static int UPDATE_ATTRIBUTE = 5;
-    public final static int DELETE_NODE = 1;
-    public final static int INSERT_NODE = 2;
-    protected String nodePath;
+public abstract class XMLCommand implements Comparable<XMLCommand> {
+    public static final int INSERT_ATTRIBUTE = 3;
+    public static final int DELETE_ATTRIBUTE = 4;
+    public static final int UPDATE_ATTRIBUTE = 5;
+    public static final int DELETE_NODE = 1;
+    public static final int INSERT_NODE = 2;
+    protected Path nodePath;
     protected int pos = -1;
     protected int type = -1;
 
-    public XMLCommand(String nodePath) {
+    protected XMLCommand(Path path) {
+        this.nodePath = path;
+    }
+
+    public void setNodePath(Path nodePath) {
         this.nodePath = nodePath;
     }
 
-    public void setNodePath(String nodePath) {
-        this.nodePath = nodePath;
-    }
-
-    public String getNodePath() {
+    public Path getNodePath() {
         return this.nodePath;
     }
 
+    @Override
     public String toString() {
         String type;
 
@@ -103,15 +106,16 @@ public abstract class XMLCommand implements Comparable {
     public static int sign(int val) {
         if (val > 0) {
             return 1;
-        } else if (val < 0) {
+        }
+        if (val < 0) {
             return -1;
         } else {
             return 0;
         }
     }
 
-    public int compareTo(Object o) {
-        XMLCommand cmd = (XMLCommand) o;
+    @Override
+    public int compareTo(XMLCommand cmd) {
 
         if (cmd.type != this.type) {
             //System.out.println("different type so " + cmd.type + "-" + this.type);
@@ -120,12 +124,12 @@ public abstract class XMLCommand implements Comparable {
 
         int result = 0;
 
-        StringTokenizer me = new StringTokenizer(this.nodePath, ":");
-        StringTokenizer obj = new StringTokenizer(cmd.nodePath, ":");
+        Iterator<PathElement> me = this.nodePath.getPathElements().iterator();
+        Iterator<PathElement> obj = cmd.nodePath.getPathElements().iterator();
 
-        while ((me.hasMoreTokens()) && (obj.hasMoreTokens())) {
-            int meVal = Integer.parseInt(me.nextToken());
-            int objVal = Integer.parseInt((obj.nextToken()));
+        while (me.hasNext() && obj.hasNext()) {
+            int meVal = me.next().getPosition();
+            int objVal = obj.next().getPosition();
 
             if (meVal != objVal) {
                 //System.out.println("found predecessor path so " + meVal + "-" + objVal);
@@ -136,10 +140,10 @@ public abstract class XMLCommand implements Comparable {
         }
 
         if (result == 0) {
-            if (me.hasMoreTokens()) {
+            if (me.hasNext()) {
                 //System.out.println("me has more token");
                 result = 1;
-            } else if (obj.hasMoreTokens()) {
+            } else if (obj.hasNext()) {
                 //System.out.println("obj has more token");
                 result = -1;
             } else {

@@ -53,12 +53,18 @@
 			<classpath refid="default.class.path" />
 			<formatter type="brief" usefile="false" />
 			<test name="fr.loria.ecoo.xml.parser.test.XMLParserTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.DeleteAttributeTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.DeleteNodeTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.InsertAttributeTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.InsertNodeTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.MoveNodeTest" />
+			<test name="fr.loria.ecoo.xml.xydiff.test.UpdateAttributeTest" />
 		</junit>
 	</target>
 	
 	<!-- compile -->
 	<target name="compile" depends="init, compile-antlr-grammar" description="Compile the source code">
-		<javac source="5" classpathref="default.class.path" destdir="${classes.dir}" debug="true">
+		<javac source="8" classpathref="default.class.path" destdir="${classes.dir}" debug="true">
 			<src location="${src.dir}" />
 		</javac>
 	</target>

@@ -17,6 +17,16 @@
  */
 package fr.loria.ecoo.so6.xml.util;
 
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import fr.loria.ecoo.so6.antlr.XMLLexer;
 import fr.loria.ecoo.so6.antlr.XMLParser;
 import fr.loria.ecoo.so6.xml.exception.AttributeAlreadyExist;
@@ -28,13 +38,6 @@ import fr.loria.ecoo.so6.xml.node.ElementNode;
 import fr.loria.ecoo.so6.xml.node.ProcessingInstructionNode;
 import fr.loria.ecoo.so6.xml.node.TextNode;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
-
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
 
 
 public class XmlUtil {
@@ -53,7 +56,7 @@ public class XmlUtil {
         return Integer.parseInt(nodePath.substring(nodePath.lastIndexOf(":") + 1));
     }
 
-    public static String getEncoding(String fileName) throws IOException, ParseException {
+    public static String getEncoding(String fileName) throws IOException {
         FileReader fr = new FileReader(fileName);
         XMLLexer lexer = new XMLLexer(fr);
         XMLParser parser = new XMLParser(lexer);
@@ -76,35 +79,27 @@ public class XmlUtil {
 
     // Load Document (Call the parser)
     public static Document load(String fileName) throws IOException, ParseException {
-        FileInputStream fis = new FileInputStream(fileName);
-        String charset = getEncoding(fileName);
-        InputStreamReader inr;
+        String encoding = getEncoding(fileName);
+        Charset charset = encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding);
+        try (FileInputStream fis = new FileInputStream(fileName);
+             InputStreamReader inr = new InputStreamReader(fis, charset)) {
 
-        if (charset != null) {
-            inr = new InputStreamReader(fis, charset);
-        } else {
-            inr = new InputStreamReader(fis, "UTF-8");
-        }
-
-        XMLLexer lexer = new XMLLexer(inr);
-        XMLParser parser = new XMLParser(lexer);
-
-        try {
-            Document d = parser.document();
-
-            return d;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ParseException(e.getMessage());
-        } finally {
-            fis.close();
+            XMLLexer lexer = new XMLLexer(inr);
+            XMLParser parser = new XMLParser(lexer);
+    
+            try {
+                return parser.document();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new ParseException(e.getMessage());
+            }
         }
     }
 
     // Import / Export : Nodes
     public static TreeNode importNode(String base64Object)
-        throws IOException, ParseException {
-        String s = new String(Base64.decode(base64Object), "UTF-8");
+        throws ParseException {
+        String s = new String(Base64.getDecoder().decode(base64Object), StandardCharsets.UTF_8);
 
         //System.out.println("---\n" + s + "\n---");
         StringReader reader = new StringReader(s);
@@ -112,7 +107,7 @@ public class XmlUtil {
         XMLParser parser = new XMLParser(lexer);
 
         try {
-            return (TreeNode) parser.node();
+            return parser.node();
         } catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
@@ -178,15 +173,14 @@ public class XmlUtil {
         Document doc = load(xmlFileName);
         TreeNode node = doc.getNode(nodePath);
 
-        if (node.allowAttributes()) {
-            if (throwExceptionIfExist && ((node.getAttribute(attributeName)) != null)) {
-                throw new AttributeAlreadyExist(attributeName);
-            }
-
-            node.setAttribute(attributeName, attributeValue);
-        } else {
+        if (!node.allowAttributes()) {
             throw new AttributeNotAllowed(node.toString());
         }
+        if (throwExceptionIfExist && ((node.getAttribute(attributeName)) != null)) {
+            throw new AttributeAlreadyExist(attributeName);
+        }
+
+        node.setAttribute(attributeName, attributeValue);
 
         doc.save(xmlFileName, true);
     }
@@ -196,11 +190,10 @@ public class XmlUtil {
         Document doc = load(xmlFileName);
         TreeNode node = doc.getNode(nodePath);
 
-        if (node.allowAttributes()) {
-            node.removeAttribute(attributeName);
-        } else {
+        if (!node.allowAttributes()) {
             throw new AttributeNotAllowed(node.toString());
         }
+        node.removeAttribute(attributeName);
 
         doc.save(xmlFileName, true);
     }

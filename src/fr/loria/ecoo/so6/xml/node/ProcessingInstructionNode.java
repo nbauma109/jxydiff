@@ -24,6 +24,9 @@ import java.io.Writer;
 
 
 public class ProcessingInstructionNode extends TextNode {
+
+    private static final long serialVersionUID = 1L;
+
     private String target;
 
     public ProcessingInstructionNode(String target) {
@@ -48,6 +51,7 @@ public class ProcessingInstructionNode extends TextNode {
         return target;
     }
 
+    @Override
     public void exportXML(Writer writer, boolean split)
         throws IOException {
         writer.write("<?");
@@ -59,18 +63,20 @@ public class ProcessingInstructionNode extends TextNode {
         writer.flush();
     }
 
+    @Override
     public boolean equalsContent(Object obj) {
         if (obj instanceof ProcessingInstructionNode) {
             return ((ProcessingInstructionNode) obj).target.equals(target) && ((ProcessingInstructionNode) obj).content.toString().equals(content.toString());
-        } else {
-            return false;
         }
+        return false;
     }
 
+    @Override
     public Hash32 getHash32() {
         return new Hash32(this.target + this.getContent());
     }
 
+    @Override
     public double getWeight() {
         if ((this.target + this.getContent()).length() == 0) {
             // prevent detect operations on an empty node

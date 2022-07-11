@@ -17,54 +17,62 @@
  */
 package fr.loria.ecoo.so6.xml.node;
 
-import fr.loria.ecoo.so6.xml.exception.InvalidNodePath;
-import fr.loria.ecoo.so6.xml.util.Base64;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
-
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+import fr.loria.ecoo.so6.xml.exception.InvalidNodePath;
 
 public abstract class AbstractTreeNode implements TreeNode, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     protected TreeNode parent;
     protected boolean allowAttributes;
     protected boolean allowChildren;
-    protected String lastComputedPath;
-    protected ArrayList children;
-    protected Hashtable attributes;
+    protected Path lastComputedPath;
+    protected List<TreeNode> children;
+    protected Map<String, String> attributes;
 
-    public AbstractTreeNode(boolean allowChildren, boolean allowAttributes) {
-        children = new ArrayList();
+    protected AbstractTreeNode(boolean allowChildren, boolean allowAttributes) {
+        children = new ArrayList<>();
         this.allowChildren = allowChildren;
         this.allowAttributes = allowAttributes;
-        this.attributes = new Hashtable();
+        this.attributes = new Hashtable<>();
     }
 
+    @Override
     public TreeNode getParent() {
         return parent;
     }
 
+    @Override
     public void setParent(TreeNode parent) {
         this.parent = parent;
     }
 
-    public ArrayList getChildren() {
+    @Override
+    public List<TreeNode> getChildren() {
         return children;
     }
 
+    @Override
     public TreeNode getChild(int childPos) {
         if (children.isEmpty()) {
             return null;
-        } else {
-            return (TreeNode) children.get(childPos);
         }
+        return children.get(childPos);
     }
 
+    @Override
     public void insertChild(int pos, TreeNode child) {
         if (!allowChildren) {
             throw new RuntimeException("Can't insert child to this node");
@@ -74,6 +82,7 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         children.add(pos, child);
     }
 
+    @Override
     public boolean removeChild(TreeNode child) {
     	TreeNode prev = child.getPreviousSibling();
     	TreeNode next = child.getNextSibling();
@@ -98,16 +107,12 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         return result;
     }
     
-    private boolean isReallyTextNode(TreeNode node) {
-    	boolean result = node instanceof TextNode &&
-    		!(node instanceof CommentNode 
-    				|| node instanceof CDataNode 
-    				|| node instanceof ProcessingInstructionNode 
-    				|| node instanceof DocTypeNode);
-    	
-    	return result;
+    private static boolean isReallyTextNode(TreeNode node) {
+    	return node instanceof TextNode &&
+    		(!(node instanceof CommentNode) && !(node instanceof CDataNode) && !(node instanceof ProcessingInstructionNode) && !(node instanceof DocTypeNode));
     }
 
+    @Override
     public TreeNode removeChild(int pos) {
     	TreeNode child = this.getChild(pos);
     	
@@ -116,6 +121,7 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
     	return child;
     }
 
+    @Override
     public void appendChild(TreeNode child) {
         if (!allowChildren) {
             throw new RuntimeException("Can't insert child to this node");
@@ -125,15 +131,17 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         children.add(child);
     }
 
+    @Override
     public int getChildPosition(TreeNode child) {
         return children.indexOf(child);
     }
 
+    @Override
     public double getWeight() {
         double weight = 1.0;
 
-        for (Iterator i = getChildren().iterator(); i.hasNext();) {
-            weight += ((AbstractTreeNode) i.next()).getWeight();
+        for (Iterator<TreeNode> i = getChildren().iterator(); i.hasNext();) {
+            weight += i.next().getWeight();
         }
 
         //System.out.println("weight " + weight + " toString " +
@@ -141,37 +149,46 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         return weight;
     }
 
+    @Override
     public String getId() {
         return getHash32().toHexString();
     }
 
-    public String getPath() {
+    @Override
+    public Path getPath() {        
+        List<PathElement> pathElements = new ArrayList<>();
         if (getParent() == null) {
-            return "0";
+            pathElements.add(new PathElement(0, getElementName()));
+        } else {
+            pathElements.addAll(getParent().getPath().getPathElements());
+            pathElements.add(new PathElement(getParent().getChildPosition(this), getElementName()));
         }
-
-        return getParent().getPath() + ":" + getParent().getChildPosition(this);
+        return new Path(pathElements);
     }
-
+    
+    @Override
     public void computePath() {
         lastComputedPath = getPath();
 
-        for (Iterator i = children.iterator(); i.hasNext();) {
-            ((TreeNode) i.next()).computePath();
+        for (Iterator<TreeNode> i = children.iterator(); i.hasNext();) {
+            i.next().computePath();
         }
     }
 
-    public String getLastComputedPath() {
+    @Override
+    public Path getLastComputedPath() {
         return lastComputedPath;
     }
 
+    @Override
     public void toBase64(Writer osw) throws IOException {
         StringWriter writer = new StringWriter();
         exportXML(writer, false);
         writer.close();
-        osw.write(Base64.encodeBytes(writer.toString().getBytes("UTF-8")));
+        osw.write(Base64.getEncoder().encodeToString(writer.toString().getBytes(StandardCharsets.UTF_8)));
     }
 
+    @Override
     public boolean equalsContent(Object obj) {
         if (obj instanceof TreeNode) {
             TreeNode objCompare = (TreeNode) obj;
@@ -181,23 +198,24 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
                 return false;
             }
 
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++) {
                 if (!objCompare.getChild(i).equalsContent(getChild(i))) {
                     return false;
                 }
+            }
 
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public TreeNode getNode(String nodePath) throws InvalidNodePath {
         TreeNode root = this;
         int[] path = convertPath(nodePath);
 
-        while (root.getParent() != null)
+        while (root.getParent() != null) {
             root = root.getParent();
+        }
 
         TreeNode node = root;
 
@@ -212,22 +230,16 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         return node;
     }
 
+    @Override
     public TreeNode getNextSibling() {
-        try {
-            int childPos = this.getParent().getChildPosition(this);
+        int childPos = this.getParent().getChildPosition(this);
 
-            return this.getParent().getChild(childPos + 1);
-        } catch (RuntimeException e) {
-            return null;
-        }
+        return this.getParent().getChild(childPos + 1);
     }
 
+    @Override
     public TreeNode getPreviousSibling() {
-        try {
-            return this.getParent().getChild(this.getParent().getChildPosition(this) - 1);
-        } catch (RuntimeException e) {
-            return null;
-        }
+        return this.getParent().getChild(this.getParent().getChildPosition(this) - 1);
     }
 
     // Node path manipulation
@@ -235,63 +247,73 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
         String[] split = path.split(":");
         int[] result = new int[split.length];
 
-        for (int i = 0; i < result.length; i++)
+        for (int i = 0; i < result.length; i++) {
             result[i] = Integer.parseInt(split[i]);
+        }
 
         return result;
     }
 
+    @Override
     public boolean hasChildren() {
         if (this.getChildren().isEmpty()) {
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
+    @Override
     public TreeNode getFirstChild() {
         return this.getChild(0);
     }
 
+    @Override
     public TreeNode getLastChild() {
-        ArrayList list = this.getChildren();
+        List<TreeNode> list = this.getChildren();
         int nbChildren = list.size();
 
         return this.getChild(nbChildren - 1);
     }
 
+    @Override
     public void setAttribute(String name, String value) {
         attributes.put(name, value);
     }
 
-    public Hashtable getAttributes() {
+    @Override
+    public Map<String, String> getAttributes() {
         return this.attributes;
     }
 
+    @Override
     public String getAttribute(String name) {
-        return (String) this.attributes.get(name);
+        return this.attributes.get(name);
     }
 
+    @Override
     public void removeAttribute(String name) {
         this.attributes.remove(name);
     }
 
+    @Override
     public boolean hasAttributes() {
         if (this.attributes.isEmpty()) {
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
+    @Override
     public boolean allowAttributes() {
         return allowAttributes;
     }
 
+    @Override
     public boolean allowChildren() {
         return allowChildren;
     }
 
+    @Override
     public String toString() {
         StringWriter writer = new StringWriter();
 

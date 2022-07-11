@@ -22,6 +22,9 @@ import java.io.Writer;
 
 
 public class CommentNode extends TextNode {
+
+    private static final long serialVersionUID = 1L;
+
     public CommentNode() {
         super();
     }
@@ -30,6 +33,7 @@ public class CommentNode extends TextNode {
         super(content);
     }
 
+    @Override
     public void exportXML(Writer writer, boolean split)
         throws IOException {
         writer.write("<!--");

@@ -18,13 +18,13 @@
 package fr.loria.ecoo.so6.xml.xydiff;
 
 public class AtomicInfo {
-    public final static byte NODEEVENT_NOP = 0;
-    public final static byte NODEEVENT_DELETED = 1;
-    public final static byte NODEEVENT_INSERTED = 2;
-    public final static byte NODEEVENT_STRONGMOVE = 3;
-    public final static byte NODEEVENT_WEAKMOVE = 4;
-    public final static byte NODEEVENT_UPDATE_OLD = 5;
-    public final static byte NODEEVENT_UPDATE_NEW = 6;
+    public static final byte NODEEVENT_NOP = 0;
+    public static final byte NODEEVENT_DELETED = 1;
+    public static final byte NODEEVENT_INSERTED = 2;
+    public static final byte NODEEVENT_STRONGMOVE = 3;
+    public static final byte NODEEVENT_WEAKMOVE = 4;
+    public static final byte NODEEVENT_UPDATE_OLD = 5;
+    public static final byte NODEEVENT_UPDATE_NEW = 6;
     int myID;
     int myPosition;
     int myParent;

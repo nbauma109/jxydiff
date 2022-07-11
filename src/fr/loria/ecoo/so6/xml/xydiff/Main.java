@@ -19,28 +19,26 @@ package fr.loria.ecoo.so6.xml.xydiff;
 
 import fr.loria.ecoo.so6.xml.node.Document;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 
 public class Main {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length < 3) {
-            System.err.println("The Main Class, must be three arguments:" + "\nfirst source file" + "\nsecond detination file" +
-                "\nthird name of the delta file");
+            System.err.println("The Main Class, must be three arguments:\nfirst source file\nsecond deStination file\nthird name of the delta file");
         } else {
-            XyDiff xydiff = new XyDiff(args[0], args[1]);
-
-            DeltaConstructor c = xydiff.diff();
-
-            Collection commands = c.getXMLCommand();
-
-            for (Iterator iter = commands.iterator(); iter.hasNext();) {
-                System.out.println(iter.next());
+            try {
+                XyDiff xydiff = new XyDiff(args[0], args[1]);
+    
+                DeltaConstructor c = xydiff.diff();
+    
+                for (XMLCommand command : c.getXMLCommand()) {
+                    System.out.println(command);
+                }
+    
+                Document delta = c.getDeltaDocument();
+                delta.save(args[2], false);
+            } catch (Exception e) {
+                System.err.println(e);
             }
-
-            Document delta = c.getDeltaDocument();
-            delta.save(args[2], false);
         }
     }
 }

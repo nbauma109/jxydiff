@@ -29,7 +29,7 @@ import java.io.FileOutputStream;
  */
 public class SmallFileUtils {
     /** Base tmp file directory */
-    public final static String BASE_TMP_DIR = "so6.tmp";
+    public static final String BASE_TMP_DIR = "so6.tmp";
     private static int number = 1;
 
     /**
@@ -41,20 +41,19 @@ public class SmallFileUtils {
      */
     public static void copy(String input, String output)
         throws Exception {
-        FileInputStream fis = new FileInputStream(input);
-        FileOutputStream fos = new FileOutputStream(output);
-
-        byte[] buffer = new byte[1024];
-
-        int length;
-
-        while ((length = fis.read(buffer)) != -1) {
-            fos.write(buffer, 0, length);
+        try (FileInputStream fis = new FileInputStream(input);
+             FileOutputStream fos = new FileOutputStream(output)) {
+    
+            byte[] buffer = new byte[1024];
+    
+            int length;
+    
+            while ((length = fis.read(buffer)) != -1) {
+                fos.write(buffer, 0, length);
+            }
+    
+            fos.flush();
         }
-
-        fos.flush();
-        fos.close();
-        fis.close();
     }
 
     /**
@@ -70,8 +69,8 @@ public class SmallFileUtils {
 
             File[] files = src.listFiles();
 
-            for (int i = 0; i < files.length; i++) {
-                copy(files[i], new File(dst, files[i].getName()));
+            for (File file : files) {
+                copy(file, new File(dst, file.getName()));
             }
         } else {
             copy(src.getPath(), dst.getPath());

@@ -102,17 +102,17 @@ public static void joinSiblingTextNodes(TreeNode node) {
 		if (node.hasChildren()) {
 			int numChildren = node.getChildren().size();
 			TreeNode aux;
-			ArrayList<TreeNode> removedNodes = new ArrayList<TreeNode>();
+			ArrayList<TreeNode> removedNodes = new ArrayList<>();
 			int startPos = -1;
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			
 			for (int i=0; i < numChildren; i++) {
 				aux = node.getChild(i);
 				
 				if (aux instanceof TextNode && !(aux instanceof CommentNode)) {
-					if (startPos == -1)
+					if (startPos == -1) {
 						startPos = i;
-					else {
+					} else {
 						sb.append(((TextNode)aux).getContent());
 						removedNodes.add(aux);
 					}
@@ -120,21 +120,23 @@ public static void joinSiblingTextNodes(TreeNode node) {
 				else {
 					if (startPos != -1 && sb.length() != 0) {
 						((TextNode)node.getChild(startPos)).appendContent(sb.toString());
-						sb = new StringBuffer();
+						sb = new StringBuilder();
 					}
 					
 					startPos = -1;
 
-					if (aux instanceof ElementNode)
+					if (aux instanceof ElementNode) {
 						joinSiblingTextNodes(aux);
+					}
 				}
 			}
 			
-			if (startPos != -1 && sb.length() != 0)
+			if (startPos != -1 && sb.length() != 0) {
 				((TextNode)node.getChild(startPos)).appendContent(sb.toString());
-			
-			for (TreeNode removedNode : removedNodes)
+			}
+			for (TreeNode removedNode : removedNodes) {
 				node.removeChild(removedNode);
+			}
 		}
 	}
 }
@@ -144,7 +146,7 @@ document returns [Document doc=new Document();] throws Exception
 								:	
 									(prolog[doc])?
 									(
-									 n=node { if (n!=null) doc.appendChild(n);} 
+									 n=node { if (n!=null) { doc.appendChild(n); } } 
 									)* EOF
 									{ joinSiblingTextNodes(doc); }
 								;
@@ -175,7 +177,7 @@ prolog[Document d] throws Exception //String vers=null;]
 								;
 
 name_suite returns [String name=null]
-{ StringBuffer buf = new StringBuffer();}
+{ StringBuilder buf = new StringBuilder();}
 								: (x:XML  
 								    { buf.append(x.getText()); }
 								  |  ns:NAME_SUITE 
@@ -187,7 +189,7 @@ name_suite returns [String name=null]
 								;
 
 name returns [String name=null]
-{ StringBuffer buf=new StringBuffer();
+{ StringBuilder buf=new StringBuilder();
   String n=null;
 }
 								:
@@ -208,7 +210,7 @@ name returns [String name=null]
 								;
 
 name_processing returns [String name=null]
-{ StringBuffer buf = new StringBuffer();
+{ StringBuilder buf = new StringBuilder();
   String ss = null;
  }
 								: ( s:NAME_START 
@@ -247,7 +249,7 @@ attributeSuite returns [String result = null]
 								;
 								
 commonAttributeValue returns [String result = null]
-{ StringBuffer buf = new StringBuffer(); String n = null;}
+{ StringBuilder buf = new StringBuilder(); String n = null;}
 								: (t:TEXT 
 								     { buf.append(t.getText()); }
 								  | n=name_suite() 
@@ -281,7 +283,7 @@ commonAttributeValue returns [String result = null]
 								;
 								
 attributeValueWithoutQuotes returns [String result = null]
-{ StringBuffer buf = new StringBuffer(); 
+{ StringBuilder buf = new StringBuilder(); 
 	String cav = null;}
 								: (	cav=commonAttributeValue()
 									{ buf.append(cav);}
@@ -292,7 +294,7 @@ attributeValueWithoutQuotes returns [String result = null]
 								;
 
 attributeValueWithoutDQuotes returns [String result = null]
-{ StringBuffer buf = new StringBuffer(); 
+{ StringBuilder buf = new StringBuilder(); 
 	String cav = null;}
 								: (	cav=commonAttributeValue()
 									{ buf.append(cav);}
@@ -312,8 +314,9 @@ misc returns [TreeNode n=null;]
 }	
 								:	c:COMMENT 
 									{
-										if (! "SPLIT".equals(c.getText()))
+										if (! "SPLIT".equals(c.getText())) {
 											n=new CommentNode(c.getText());
+										}
 									} 	
 								| 	n = processingInstruction()					
 									
@@ -614,9 +617,9 @@ esuite2[ElementNode elt] throws ParseException, AttributeAlreadyExist
 								|   anAtt = attribute
 											{
 												s = (String)elt.getAttribute(anAtt[0]);
-												if(s!=null)
+												if(s!=null) {
 													throw new AttributeAlreadyExist(anAtt[0]);
-
+												}
 												elt.setAttribute(anAtt[0], anAtt[1]);
 											}
 									(WS)? esuite2[elt]
@@ -628,8 +631,8 @@ long_suite[ElementNode elt] throws ParseException, AttributeAlreadyExist
 	String s = null;
 }
 								: 
-								  (t=node {if (t!=null) elt.appendChild(t);}
-								  )* LONGELEM_ES s=name() {if (!elt.getElementName().equals(s)) throw new ParseException("The tag name must be equal");} (WS)? LONGELEM_EE
+								  (t=node {if (t!=null) { elt.appendChild(t); }}
+								  )* LONGELEM_ES s=name() {if (!elt.getElementName().equals(s)) { throw new ParseException("The tag name must be equal"); }} (WS)? LONGELEM_EE
 								;
 
 								

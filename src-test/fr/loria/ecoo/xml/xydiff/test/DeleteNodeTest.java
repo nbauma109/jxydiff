@@ -31,6 +31,13 @@ import java.io.FileWriter;
 
 
 public class DeleteNodeTest extends TestCase {
+
+    private static final String DELETED = "Deleted";
+    private static final String XML_VERSION_1_0 = "<?xml version=\"1.0\"?>";
+    private static final String ROOT = "<root/>";
+    private static final String XML_COMMAND = "XML Command";
+    private static final String DELTA = "delta";
+
     private String tempDirPath;
     private String temp1;
     private String temp2;
@@ -39,6 +46,7 @@ public class DeleteNodeTest extends TestCase {
         super(arg0);
     }
 
+    @Override
     protected void setUp() throws Exception {
         File temp = SmallFileUtils.createTmpDir();
         tempDirPath = temp.getAbsolutePath();
@@ -47,27 +55,24 @@ public class DeleteNodeTest extends TestCase {
     }
 
     public void testDeleteNode() throws Exception {
-        File test1 = new File(temp1);
-        FileWriter writer1 = new FileWriter(temp1);
-        String c1 = "<?xml version=\"1.0\"?>" + "<root><a/></root>";
-        char[] buffer1 = c1.toCharArray();
-        writer1.write(buffer1);
-        writer1.close();
-
-        File test2 = new File(temp2);
-        FileWriter writer2 = new FileWriter(temp2);
-        String c2 = "<?xml version=\"1.0\"?>" + "<root/>";
-        char[] buffer2 = c2.toCharArray();
-        writer2.write(buffer2);
-        writer2.close();
-
+        try (FileWriter writer1 = new FileWriter(temp1)) {
+            String c1 = XML_VERSION_1_0 + "<root><a/></root>";
+            char[] buffer1 = c1.toCharArray();
+            writer1.write(buffer1);
+        }
+        try (FileWriter writer2 = new FileWriter(temp2)) {
+            String c2 = XML_VERSION_1_0 + ROOT;
+            char[] buffer2 = c2.toCharArray();
+            writer2.write(buffer2);
+        }
         XyDiff xydiff = new XyDiff(temp1, temp2);
         Document delta = xydiff.diff().getDeltaDocument();
 
         Document ref = new Document();
-        ElementNode root = new ElementNode("delta");
-        ElementNode d = new ElementNode("Deleted");
+        ElementNode root = new ElementNode(DELTA);
+        ElementNode d = new ElementNode(DELETED);
         d.setAttribute("pos", "0:0:0");
+        d.setAttribute("path", "/root/a");
 
         ElementNode toAppend = new ElementNode("a");
         d.appendChild(toAppend);
@@ -80,31 +85,28 @@ public class DeleteNodeTest extends TestCase {
         System.out.println("delta " + s1);
         System.out.println("ref   " + s2);
 
-        assertTrue("XML Command", s1.equals(s2));
+        assertEquals(XML_COMMAND, s1, s2);
     }
 
     public void testDeleteSubtree() throws Exception {
-        File test1 = new File(temp1);
-        FileWriter writer1 = new FileWriter(temp1);
-        String c1 = "<?xml version=\"1.0\"?>" + "<root><a><b/><c/><d><e/></d></a></root>";
-        char[] buffer1 = c1.toCharArray();
-        writer1.write(buffer1);
-        writer1.close();
-
-        File test2 = new File(temp2);
-        FileWriter writer2 = new FileWriter(temp2);
-        String c2 = "<?xml version=\"1.0\"?>" + "<root/>";
-        char[] buffer2 = c2.toCharArray();
-        writer2.write(buffer2);
-        writer2.close();
-
+        try (FileWriter writer1 = new FileWriter(temp1)) {
+            String c1 = XML_VERSION_1_0 + "<root><a><b/><c/><d><e/></d></a></root>";
+            char[] buffer1 = c1.toCharArray();
+            writer1.write(buffer1);
+        }
+        try (FileWriter writer2 = new FileWriter(temp2)) {
+            String c2 = XML_VERSION_1_0 + ROOT;
+            char[] buffer2 = c2.toCharArray();
+            writer2.write(buffer2);
+        }
         XyDiff xydiff = new XyDiff(temp1, temp2);
         Document delta = xydiff.diff().getDeltaDocument();
 
         Document ref = new Document();
-        ElementNode root = new ElementNode("delta");
-        ElementNode i = new ElementNode("Deleted");
+        ElementNode root = new ElementNode(DELTA);
+        ElementNode i = new ElementNode(DELETED);
         i.setAttribute("pos", "0:0:0");
+        i.setAttribute("path", "/root/a");
 
         ElementNode a = new ElementNode("a");
 
@@ -126,32 +128,29 @@ public class DeleteNodeTest extends TestCase {
         String s1 = delta.toString();
         String s2 = ref.toString();
 
-        assertTrue("XML Command", s1.equals(s2));
+        assertEquals(XML_COMMAND, s1, s2);
     }
 
     public void testDeleteTextNodeChildOfDocumentRoot()
         throws Exception {
-        File test1 = new File(temp1);
-        FileWriter writer1 = new FileWriter(temp1);
-        String c1 = "<?xml version=\"1.0\"?>" + "\n<root/>";
-        char[] buffer1 = c1.toCharArray();
-        writer1.write(buffer1);
-        writer1.close();
-
-        File test2 = new File(temp2);
-        FileWriter writer2 = new FileWriter(temp2);
-        String c2 = "<?xml version=\"1.0\"?>" + "<root/>";
-        char[] buffer2 = c2.toCharArray();
-        writer2.write(buffer2);
-        writer2.close();
-
+        try (FileWriter writer1 = new FileWriter(temp1)) {
+            String c1 = XML_VERSION_1_0 + "\n<root/>";
+            char[] buffer1 = c1.toCharArray();
+            writer1.write(buffer1);
+        }
+        try (FileWriter writer2 = new FileWriter(temp2)) {
+            String c2 = XML_VERSION_1_0 + ROOT;
+            char[] buffer2 = c2.toCharArray();
+            writer2.write(buffer2);
+        }
         XyDiff xydiff = new XyDiff(temp1, temp2);
         Document delta = xydiff.diff().getDeltaDocument();
 
         Document ref = new Document();
-        ElementNode root = new ElementNode("delta");
-        ElementNode i = new ElementNode("Deleted");
+        ElementNode root = new ElementNode(DELTA);
+        ElementNode i = new ElementNode(DELETED);
         i.setAttribute("pos", "0:0");
+        i.setAttribute("path", "");
 
         TextNode t = new TextNode("\n");
         i.appendChild(t);
@@ -161,7 +160,7 @@ public class DeleteNodeTest extends TestCase {
         String s1 = delta.toString();
         String s2 = ref.toString();
 
-        assertTrue("XML Command", s1.equals(s2));
+        assertEquals(XML_COMMAND, s1, s2);
     }
     
     public void testTextNodesShouldBeTogether() throws Exception {
@@ -180,6 +179,7 @@ public class DeleteNodeTest extends TestCase {
 		assertEquals(1, doc.getChildren().size());
 	}
 
+    @Override
     protected void tearDown() throws Exception {
         System.out.println(tempDirPath);
     }

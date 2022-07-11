@@ -18,6 +18,7 @@
 package fr.loria.ecoo.so6.xml.xydiff;
 
 import fr.loria.ecoo.so6.xml.node.ElementNode;
+import fr.loria.ecoo.so6.xml.node.Path;
 
 
 public class UpdateAttribute extends XMLCommand {
@@ -25,8 +26,8 @@ public class UpdateAttribute extends XMLCommand {
     private String oldValue;
     private String newValue;
 
-    public UpdateAttribute(String nodePath, String name, String oldValue, String value) {
-        super(nodePath);
+    public UpdateAttribute(Path path, String name, String oldValue, String value) {
+        super(path);
         this.attributeName = name;
         this.oldValue = oldValue;
         this.newValue = value;
@@ -57,13 +58,16 @@ public class UpdateAttribute extends XMLCommand {
         this.oldValue = oldValue;
     }
 
+    @Override
     public String toString() {
         return ("UpdateAttribute: name " + attributeName + " path " + this.nodePath + " from " + oldValue + " to " + newValue);
     }
 
+    @Override
     public ElementNode toXML() {
         ElementNode ua = new ElementNode("AttributeUpdated");
-        ua.setAttribute("pos", nodePath);
+        ua.setAttribute("pos", nodePath.getNumericPath());
+        ua.setAttribute("path", nodePath.getPseudoXPath());
         ua.setAttribute("name", attributeName);
         ua.setAttribute("ov", oldValue);
         ua.setAttribute("nv", newValue);

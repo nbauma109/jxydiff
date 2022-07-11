@@ -17,31 +17,25 @@
  */
 package fr.loria.ecoo.so6.antlr;
 
-import antlr.Token;
-
-import fr.loria.ecoo.so6.xml.node.Document;
-
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+
+import antlr.Token;
 
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(args[0]), "UTF-8");
-        XMLLexer lexer = new XMLLexer(reader);
+    public static void main(String[] args) {
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(args[0]), StandardCharsets.UTF_8)) {
+            XMLLexer lexer = new XMLLexer(reader);
 
-        Token t = null;
-
-        if (1 != 0) {
+            Token t = null;
             while ((t = lexer.nextToken()).getText() != null) {
                 System.out.println(t);
             }
-        } else {
-            XMLParser parser = new XMLParser(lexer);
-            Document doc = parser.document();
-
-            doc.exportXML(new PrintWriter(System.out), false);
+            //XMLParser parser = new XMLParser(lexer);
+            //Document doc = parser.document();
+            //doc.exportXML(new PrintWriter(System.out), false);
 
             //doc.save(args[1], true);
             //
@@ -50,6 +44,8 @@ public class Main {
             //System.out.println(node1.toString());
             //System.out.println(node2.toString());
             //System.out.println("equalsContent="+node1.equalsContent(node2));
+        } catch (Exception e) {
+           System.err.println(e);
         }
     }
 }

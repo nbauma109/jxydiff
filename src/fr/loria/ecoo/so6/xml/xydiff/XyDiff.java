@@ -20,14 +20,7 @@ package fr.loria.ecoo.so6.xml.xydiff;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
 import fr.loria.ecoo.so6.xml.util.XmlUtil;
 
-import java.util.Date;
-
-
 public class XyDiff {
-    private Date start;
-    private Date stop;
-    private Date startDelta;
-    private Date stopDelta;
 
     // Separate the different step of the diff
     TreeNode v0XML;
@@ -55,23 +48,20 @@ public class XyDiff {
         int v1rootID = xyMappingEngine.resultNumberOfNodes;
 
         // ---- [[Phase 2: ]] Apply Bottom-Up Lazy-Down Algorithm ----
-        start = new Date();
 
         //xyMappingEngine.matchById(v1rootID);
         //xyMappingEngine.fullBottomUp(v1rootID);
         xyMappingEngine.topDownMatch(v0rootID, v1rootID);
 
         // ---- [[Phase 3: ]] Peephole Optimization to Propagate Matchings ----
-        stop = new Date();
         xyMappingEngine.optimize(v0rootID);
 
         // ---- [[Phase 4: ]] Construct the Delta ----
-        startDelta = new Date();
 
         DeltaConstructor myDeltaConstructor = new DeltaConstructor(xyMappingEngine, v0XML, v1XML);
         myDeltaConstructor.constructDeltaDocument();
-        stopDelta = new Date();
 
         return myDeltaConstructor;
     }
+
 }

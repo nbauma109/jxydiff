@@ -17,16 +17,17 @@
  */
 package fr.loria.ecoo.so6.xml.xydiff;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import fr.loria.ecoo.so6.xml.node.AttributePath;
 import fr.loria.ecoo.so6.xml.node.Document;
 import fr.loria.ecoo.so6.xml.node.ElementNode;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
 import fr.loria.ecoo.so6.xml.util.XmlUtil;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
 
 
 public class DeltaConstructor {
@@ -35,7 +36,7 @@ public class DeltaConstructor {
     private NodesManager nodesManager;
     private int moveCount;
     private int updateCount;
-    private Vector table;
+    private List<XMLCommand> table;
 
     public DeltaConstructor(NodesManager incMappings, TreeNode fromXDD, TreeNode toXDD)
         throws Exception {
@@ -44,7 +45,7 @@ public class DeltaConstructor {
         this.nodesManager = incMappings;
         this.moveCount = 0;
         this.updateCount = 0;
-        table = new Vector();
+        table = new ArrayList<>();
 
         //
         v0XML.computePath();
@@ -55,8 +56,7 @@ public class DeltaConstructor {
         Document delta = new Document();
         ElementNode root = new ElementNode("delta");
 
-        for (Enumeration e = table.elements(); e.hasMoreElements();) {
-            XMLCommand command = (XMLCommand) e.nextElement();
+        for (XMLCommand command : table) {
             root.appendChild(command.toXML());
         }
 
@@ -75,9 +75,6 @@ public class DeltaConstructor {
 
         // ---- Construct INSERT Operations script ----
         nodesManager.markNewTree(v1rootID);
-
-        // ---- Save Resulting XID-map ----
-        TreeNode v1rootElement = v1XML;
 
         // ---- Compute WEAK MOVE Operations ----
         nodesManager.computeWeakMove(v0rootID);
@@ -102,13 +99,13 @@ public class DeltaConstructor {
 
         // ---- Done ----
         // ---- Reorder operation ----
-        Vector tempo = new Vector();
+        List<XMLCommand> tempo = new ArrayList<>();
         Object[] toSort = table.toArray();
         Arrays.sort(toSort);
 
-        for (int i = 0; i < toSort.length; i++) {
-            XMLCommand cmd = (XMLCommand) toSort[i];
-            tempo.addElement(cmd);
+        for (Object element : toSort) {
+            XMLCommand cmd = (XMLCommand) element;
+            tempo.add(cmd);
         }
 
         table = tempo;
@@ -120,16 +117,16 @@ public class DeltaConstructor {
         TreeNode node = this.nodesManager.getV0NodeByID(v0nodeID);
 
         // Apply to children first - note that they must be enumerated in reverse order
-        Vector childList = new Vector();
+        List<Integer> childList = new ArrayList<>();
         int child = myAtomicInfo.firstChild;
 
         while (child != 0) {
-            childList.addElement(new Integer(child));
+            childList.add(child);
             child = this.nodesManager.getV0NodeInfo(child).nextSibling;
         }
 
         for (int i = childList.size() - 1; i >= 0; i--) {
-            constructDeleteScript(((Integer) childList.elementAt(i)).intValue(), myAtomicInfo.myEvent == AtomicInfo.NODEEVENT_DELETED);
+            constructDeleteScript(childList.get(i), myAtomicInfo.myEvent == AtomicInfo.NODEEVENT_DELETED);
         }
 
         // Apply to Self
@@ -143,7 +140,6 @@ public class DeltaConstructor {
         case AtomicInfo.NODEEVENT_UPDATE_OLD:
 
             if (((myAtomicInfo.myEvent != AtomicInfo.NODEEVENT_DELETED) || (!ancestorDeleted))) {
-                TreeNode parentNode = node.getParent();
 
                 int myPosition = myAtomicInfo.myPosition;
 
@@ -160,7 +156,7 @@ public class DeltaConstructor {
                         d.setIsUpdated(true);
                     }
 
-                    table.addElement(d);
+                    table.add(d);
 
                     break;
 
@@ -169,7 +165,7 @@ public class DeltaConstructor {
                     d = new DeleteNode(node.getLastComputedPath(), XmlUtil.clone(node));
                     d.setIsMoved(true);
                     d.setPos(myAtomicInfo.myPosition);
-                    table.addElement(d);
+                    table.add(d);
                     this.moveCount++;
 
                     break;
@@ -206,7 +202,6 @@ public class DeltaConstructor {
 
             if (((myAtomicInfo.myEvent != AtomicInfo.NODEEVENT_INSERTED) || (!ancestorInserted))) {
                 int myPosition = myAtomicInfo.myPosition;
-                TreeNode parentNode = node.getParent();
 
                 switch (myAtomicInfo.myEvent) {
                 case AtomicInfo.NODEEVENT_INSERTED:
@@ -221,7 +216,7 @@ public class DeltaConstructor {
                         i.setIsUpdated(true);
                     }
 
-                    table.addElement(i);
+                    table.add(i);
 
                     break;
 
@@ -230,7 +225,7 @@ public class DeltaConstructor {
                     i = new InsertNode(node.getLastComputedPath(), XmlUtil.clone(node));
                     i.setPos(myAtomicInfo.myPosition);
                     i.setIsMoved(true);
-                    table.addElement(i);
+                    table.add(i);
                     this.moveCount--;
                     addAttributeOperations(v1nodeID);
 
@@ -306,45 +301,44 @@ public class DeltaConstructor {
     private void addAttributeOperations(int v1nodeID) throws Exception {
         TreeNode node = this.nodesManager.getV1NodeByID(v1nodeID);
 
-        if (!this.nodesManager.v1Assigned(v1nodeID)) {
-            return;
-        } else if (!node.allowAttributes()) {
+        if (!this.nodesManager.v1Assigned(v1nodeID) || !node.allowAttributes()) {
             return;
         }
 
         int v0nodeID = this.nodesManager.getV1NodeInfo(v1nodeID).myMatchID;
         TreeNode oldnode = this.nodesManager.getV0NodeByID(v0nodeID);
-        Hashtable attributes = node.getAttributes();
+        Map<String, String> attributes = node.getAttributes();
 
-        for (Enumeration e = attributes.keys(); e.hasMoreElements();) {
-            String attr = (String) e.nextElement();
-            String value = (String) attributes.get(attr);
+        for (Map.Entry<String, String> e : attributes.entrySet()) {
+            String attr = e.getKey();
+            String value = e.getValue();
 
             if (!oldnode.getAttributes().containsKey(attr)) {
-                InsertAttribute ia = new InsertAttribute(node.getPath(), attr, value);
+                AttributePath attributePath = new AttributePath(node.getPath(), attr);
+                InsertAttribute ia = new InsertAttribute(attributePath, attr, value);
                 ia.setPos(nodesManager.getV1NodeInfo(v1nodeID).myPosition);
-                table.addElement(ia);
+                table.add(ia);
             } else {
-                String oldValue = (String) oldnode.getAttributes().get(attr);
+                String oldValue = oldnode.getAttributes().get(attr);
 
                 if (!value.equals(oldValue)) {
-                    UpdateAttribute ua = new UpdateAttribute(node.getPath(), attr, oldValue, value);
+                    AttributePath attributePath = new AttributePath(node.getPath(), attr);
+                    UpdateAttribute ua = new UpdateAttribute(attributePath, attr, oldValue, value);
                     ua.setPos(nodesManager.getV1NodeInfo(v1nodeID).myPosition);
-                    table.addElement(ua);
+                    table.add(ua);
                 }
             }
         }
 
-        Hashtable oldAttributes = oldnode.getAttributes();
+        Map<String, String> oldAttributes = oldnode.getAttributes();
 
-        for (Enumeration e = oldAttributes.keys(); e.hasMoreElements();) {
-            String oldName = (String) e.nextElement();
-            String oldValue = (String) oldAttributes.get(oldName);
+        for (String oldName : oldAttributes.keySet()) {
 
             if (!node.getAttributes().containsKey(oldName)) {
-                DeleteAttribute da = new DeleteAttribute(node.getPath(), oldName);
+                AttributePath attributePath = new AttributePath(node.getPath(), oldName);
+                DeleteAttribute da = new DeleteAttribute(attributePath, oldName);
                 da.setPos(nodesManager.getV1NodeInfo(v1nodeID).myPosition);
-                table.addElement(da);
+                table.add(da);
             }
         }
 
@@ -357,7 +351,7 @@ public class DeltaConstructor {
         }
     }
 
-    public Collection getXMLCommand() {
+    public Collection<XMLCommand> getXMLCommand() {
         return table;
     }
 }

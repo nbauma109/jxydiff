@@ -18,6 +18,7 @@
 package fr.loria.ecoo.so6.xml.xydiff;
 
 import fr.loria.ecoo.so6.xml.node.ElementNode;
+import fr.loria.ecoo.so6.xml.node.Path;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
 
 
@@ -26,8 +27,8 @@ public class DeleteNode extends XMLCommand {
     private boolean isMoved;
     private boolean isUpdated;
 
-    public DeleteNode(String nodePath, TreeNode node) {
-        super(nodePath);
+    public DeleteNode(Path path, TreeNode node) {
+        super(path);
         this.node = node;
         this.type = XMLCommand.DELETE_NODE;
         this.isMoved = false;
@@ -58,24 +59,27 @@ public class DeleteNode extends XMLCommand {
         this.node = node;
     }
 
+    @Override
     public String toString() {
-        String s = ("DeleteNode: " + node.toString() + " path " + this.nodePath);
+        StringBuilder s = new StringBuilder("DeleteNode: ").append(node.toString()).append(" path ").append(this.nodePath);
 
         if (isMoved) {
-            s += " (move)";
+            s.append(" (move)");
         }
 
         if (this.isUpdated) {
-            s += " (update)";
+            s.append(" (update)");
         }
 
-        return s;
+        return s.toString();
     }
 
+    @Override
     public ElementNode toXML() {
         try {
             ElementNode d = new ElementNode("Deleted");
-            d.setAttribute("pos", this.nodePath);
+            d.setAttribute("pos", this.nodePath.getNumericPath());
+            d.setAttribute("path", this.nodePath.getPseudoXPath());
 
             if (this.isMoved) {
                 d.setAttribute("move", "yes");

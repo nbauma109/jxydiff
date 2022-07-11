@@ -17,26 +17,28 @@
  */
 package fr.loria.ecoo.so6.xml.xydiff;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import fr.loria.ecoo.so6.xml.node.ElementNode;
 import fr.loria.ecoo.so6.xml.node.TreeNode;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Vector;
-
 
 public class NodesManager {
+
+    private static final String INVALID_NODE_ID = "invalid node ID =";
+
     public static int MIN_CANDIDATEPARENT_LEVEL = 3;
     private static int NULL_ID = 0;
     public int sourceNumberOfNodes = 0;
     public int resultNumberOfNodes = 0;
-    private Vector v0nodeByDID; // contains Node
-    private Vector v1nodeByDID; // contains Node
-    private Vector v0nodes; // contains AtomicInfo
-    private Vector v1nodes; // contains AtomicInfo
-    private Vector xxlistOfCandidatesByParentLevelByHash; // contains
+    private List<TreeNode> v0nodeByDID; // contains Node
+    private List<TreeNode> v1nodeByDID; // contains Node
+    private List<AtomicInfo> v0nodes; // contains AtomicInfo
+    private List<AtomicInfo> v1nodes; // contains AtomicInfo
+    private List<IndexToCandidates> xxlistOfCandidatesByParentLevelByHash; // contains
     private TreeNode v0doc;
     private TreeNode v1doc;
     private int statsRecursiveAssignFailed = 0;
@@ -47,16 +49,16 @@ public class NodesManager {
 
     public NodesManager() {
         // to do something else...
-        this.v0nodes = new Vector();
-        this.v0nodes.addElement(null);
-        this.v1nodes = new Vector();
-        this.v1nodes.addElement(null);
-        this.v0nodeByDID = new Vector();
-        this.v0nodeByDID.addElement(new Integer(-1));
-        this.v1nodeByDID = new Vector();
-        this.v1nodeByDID.addElement(new Integer(-1));
-        this.xxlistOfCandidatesByParentLevelByHash = new Vector();
-        this.xxlistOfCandidatesByParentLevelByHash.addElement(new IndexToCandidates());
+        this.v0nodes = new ArrayList<>();
+        this.v0nodes.add(null);
+        this.v1nodes = new ArrayList<>();
+        this.v1nodes.add(null);
+        this.v0nodeByDID = new ArrayList<>();
+        this.v0nodeByDID.add(null);
+        this.v1nodeByDID = new ArrayList<>();
+        this.v1nodeByDID.add(null);
+        this.xxlistOfCandidatesByParentLevelByHash = new ArrayList<>();
+        this.xxlistOfCandidatesByParentLevelByHash.add(new IndexToCandidates());
 
         // until here...
     }
@@ -77,8 +79,8 @@ public class NodesManager {
         System.out.println("v0node");
 
         for (int i = 0; i < v0nodes.size(); i++) {
-            if ((AtomicInfo) v0nodes.get(i) != null) {
-                AtomicInfo info = (AtomicInfo) v0nodes.get(i);
+            if (v0nodes.get(i) != null) {
+                AtomicInfo info = v0nodes.get(i);
                 System.out.println("\t" + i + "->" + info.myMatchID);
                 System.out.println("\tOwnHash = " + info.myOwnHash.toHexString());
                 System.out.println("\tmySubtreeHash = " + info.mySubtreeHash.toHexString());
@@ -90,8 +92,8 @@ public class NodesManager {
         System.out.println("v1node");
 
         for (int i = 0; i < v1nodes.size(); i++) {
-            if ((AtomicInfo) v1nodes.get(i) != null) {
-                AtomicInfo info = (AtomicInfo) v1nodes.get(i);
+            if (v1nodes.get(i) != null) {
+                AtomicInfo info = v1nodes.get(i);
                 System.out.println("\t" + i + "->" + info.myMatchID);
                 System.out.println("\tOwnHash = " + info.myOwnHash.toHexString());
                 System.out.println("\tmySubtreeHash = " + info.mySubtreeHash.toHexString());
@@ -102,56 +104,56 @@ public class NodesManager {
     }
 
     public void addV0NodeInfo(AtomicInfo myAtomicInfo) {
-        this.v0nodes.addElement(myAtomicInfo);
+        this.v0nodes.add(myAtomicInfo);
     }
 
     public void addV1NodeInfo(AtomicInfo myAtomicInfo) {
-        this.v1nodes.addElement(myAtomicInfo);
+        this.v1nodes.add(myAtomicInfo);
     }
 
     public void addV0NodeByID(TreeNode node) {
-        this.v0nodeByDID.addElement(node);
+        this.v0nodeByDID.add(node);
     }
 
     public void addV1NodeByID(TreeNode node) {
-        this.v1nodeByDID.addElement(node);
+        this.v1nodeByDID.add(node);
     }
 
     // accessor
     public AtomicInfo getV0NodeInfo(int v0nodeID) throws Exception {
         if ((v0nodeID < 1) || (v0nodeID > this.v0nodes.size())) {
-            throw new Exception("invalid node ID =" + v0nodeID);
+            throw new Exception(INVALID_NODE_ID + v0nodeID);
         }
 
-        return (AtomicInfo) this.v0nodes.elementAt(v0nodeID);
+        return this.v0nodes.get(v0nodeID);
     }
 
     public AtomicInfo getV1NodeInfo(int v1nodeID) throws Exception {
         if ((v1nodeID < 1) || (v1nodeID > this.v1nodes.size())) {
-            throw new Exception("invalid node ID =" + v1nodeID);
+            throw new Exception(INVALID_NODE_ID + v1nodeID);
         }
 
-        return (AtomicInfo) this.v1nodes.elementAt(v1nodeID);
+        return this.v1nodes.get(v1nodeID);
     }
 
     public TreeNode getV0NodeByID(int v0nodeID) throws Exception {
         if ((v0nodeID < 1) || (v0nodeID > this.v0nodeByDID.size())) {
-            throw new Exception("invalid node ID =" + v0nodeID);
+            throw new Exception(INVALID_NODE_ID + v0nodeID);
         }
 
-        return (TreeNode) this.v0nodeByDID.elementAt(v0nodeID);
+        return this.v0nodeByDID.get(v0nodeID);
     }
 
     public TreeNode getV1NodeByID(int v1nodeID) throws Exception {
         if ((v1nodeID < 1) || (v1nodeID > this.v1nodeByDID.size())) {
-            throw new Exception("invalid node ID =" + v1nodeID);
+            throw new Exception(INVALID_NODE_ID + v1nodeID);
         }
 
-        return (TreeNode) this.v1nodeByDID.elementAt(v1nodeID);
+        return this.v1nodeByDID.get(v1nodeID);
     }
 
     private IndexToCandidates getCandidatesByParentLevelByHash(int level) {
-        return (IndexToCandidates) this.xxlistOfCandidatesByParentLevelByHash.elementAt(level);
+        return this.xxlistOfCandidatesByParentLevelByHash.get(level);
     }
 
     public TreeNode getV0Document() {
@@ -180,7 +182,7 @@ public class NodesManager {
         this.v0doc = sourceDoc;
 
         for (int i = 1; i <= MIN_CANDIDATEPARENT_LEVEL; i++) {
-            this.xxlistOfCandidatesByParentLevelByHash.addElement(new IndexToCandidates());
+            this.xxlistOfCandidatesByParentLevelByHash.add(new IndexToCandidates());
         }
 
         computeCandidateIndexTables(this.sourceNumberOfNodes);
@@ -207,37 +209,32 @@ public class NodesManager {
         AtomicInfo myAtomicInfo = new AtomicInfo();
         myAtomicInfo.myWeight = node.getWeight(); // might be optimized (caching)...
 
-        Vector childrenAtomicInfoList = new Vector();
+        List<AtomicInfo> childrenAtomicInfoList = new ArrayList<>();
 
         // Node management
         myAtomicInfo.myOwnHash = node.getHash32();
         myAtomicInfo.mySubtreeHash = (Hash32) myAtomicInfo.myOwnHash.clone();
 
-        String hash = myAtomicInfo.mySubtreeHash.toHexString();
+        StringBuilder hash = new StringBuilder().append(myAtomicInfo.mySubtreeHash.toHexString());
 
-        if (node.allowChildren()) {
-            if (node.hasChildren()) {
-                for (Iterator i = node.getChildren().iterator(); i.hasNext();) {
-                    TreeNode child = (TreeNode) i.next();
-                    int childID = registerSubtree(child, isSource);
-                    AtomicInfo childAtomicInfo = (isSource) ? getV0NodeInfo(childID) : getV1NodeInfo(childID);
-                    childrenAtomicInfoList.addElement(childAtomicInfo);
-                    hash += childAtomicInfo.mySubtreeHash.toHexString();
-                }
-
-                myAtomicInfo.mySubtreeHash = new Hash32(hash);
+        if (node.allowChildren() && node.hasChildren()) {
+            for (TreeNode child : node.getChildren()) {
+                int childID = registerSubtree(child, isSource);
+                AtomicInfo childAtomicInfo = (isSource) ? getV0NodeInfo(childID) : getV1NodeInfo(childID);
+                childrenAtomicInfoList.add(childAtomicInfo);
+                hash.append(childAtomicInfo.mySubtreeHash.toHexString());
             }
+
+            myAtomicInfo.mySubtreeHash = new Hash32(hash.toString());
         }
 
         if (node.allowAttributes()) {
             // Attribute Management
-            Hashtable attributes = node.getAttributes();
+            Map<String, String> attributes = node.getAttributes();
 
-            for (Enumeration e = attributes.keys(); e.hasMoreElements();) {
-                String name = (String) e.nextElement();
+            for (String name : attributes.keySet()) {
                 Hash32 keyIdH = new Hash32(node.getHash32());
                 Hash32 attrNameH = new Hash32(name);
-                Hash32 attrValH = new Hash32((String) attributes.get(name));
                 myAtomicInfo.myOwnHash.value = (keyIdH.value << 1) + (attrNameH.value << 2);
             }
         }
@@ -255,7 +252,7 @@ public class NodesManager {
         AtomicInfo current = null;
 
         for (int i = 0; i < nbChildren; i++) {
-            current = (AtomicInfo) childrenAtomicInfoList.get(i);
+            current = childrenAtomicInfoList.get(i);
             current.myParent = myAtomicInfo.myID;
             current.myPosition = (i + 1);
 
@@ -267,7 +264,7 @@ public class NodesManager {
         }
 
         if (nbChildren != 0) {
-            myAtomicInfo.firstChild = ((AtomicInfo) childrenAtomicInfoList.get(0)).myID;
+            myAtomicInfo.firstChild = childrenAtomicInfoList.get(0).myID;
         }
 
         // Store node in array
@@ -287,11 +284,11 @@ public class NodesManager {
         AtomicInfo myAtomicInfo = getV0NodeInfo(v0nodeID);
 
         //		((CandidateSet) getCandidatesByParentLevelByHash(0).get(new
-        // Integer(myAtomicInfo.mySubtreeHash.valnue))).v0node.addElement(new
+        // Integer(myAtomicInfo.mySubtreeHash.valnue))).v0node.add(new
         // Integer(myAtomicInfo.myID));
         IndexToCandidates itc = getCandidatesByParentLevelByHash(0);
         CandidateSet cs = itc.get(myAtomicInfo.mySubtreeHash.value);
-        cs.addElement(myAtomicInfo.myID);
+        cs.add(myAtomicInfo.myID);
 
         int relativeLevel = 1;
         int relativeId = myAtomicInfo.myParent;
@@ -306,7 +303,7 @@ public class NodesManager {
             Hash32 tablekey = new Hash32(buf);
 
             IndexToCandidates theIndex = getCandidatesByParentLevelByHash(relativeLevel);
-            theIndex.get(tablekey.value).addElement(myAtomicInfo.myID);
+            theIndex.get(tablekey.value).add(myAtomicInfo.myID);
 
             relativeLevel++;
             relativeId = getV0NodeInfo(relativeId).myParent;
@@ -322,7 +319,7 @@ public class NodesManager {
 
     private void nodeAssign(int v0nodeID, int v1nodeID)
         throws Exception {
-        if (tryNodeAssign(v0nodeID, v1nodeID) == true) {
+        if (tryNodeAssign(v0nodeID, v1nodeID)) {
             getV0NodeInfo(v0nodeID).myMatchID = v1nodeID;
             this.sourceAssigned++;
             getV1NodeInfo(v1nodeID).myMatchID = v0nodeID;
@@ -335,12 +332,11 @@ public class NodesManager {
         TreeNode n0 = getV0NodeByID(v0nodeID);
         TreeNode n1 = getV1NodeByID(v1nodeID);
 
-        if (n0.getClass().getName().equals(n1.getClass().getName())) {
-            if ((n0 instanceof ElementNode) && (n1 instanceof ElementNode)) {
-                if (((ElementNode) n0).getElementName().equals(((ElementNode) n1).getElementName())) {
-                    return true;
-                }
-            } else {
+        if (n0.getClass() == n1.getClass()) {
+            if (!(n0 instanceof ElementNode) || !(n1 instanceof ElementNode)) {
+                return true;
+            }
+            if (((ElementNode) n0).getElementName().equals(((ElementNode) n1).getElementName())) {
                 return true;
             }
         }
@@ -361,15 +357,7 @@ public class NodesManager {
             v0ascendant = getV0NodeInfo(v0ascendant).myParent;
             v1ascendant = getV1NodeInfo(v1ascendant).myParent;
 
-            if ((v0ascendant == 0) || (v1ascendant == 0)) {
-                return;
-            }
-
-            if (v0Assigned(v0ascendant)) {
-                return;
-            }
-
-            if (v1Assigned(v1ascendant)) {
+            if ((v0ascendant == 0) || (v1ascendant == 0) || v0Assigned(v0ascendant) || v1Assigned(v1ascendant)) {
                 return;
             }
 
@@ -402,7 +390,7 @@ public class NodesManager {
         //System.out.println("fullBottomUp call on v1 node " + v1nodeID);
         AtomicInfo myV1AtomicInfo = getV1NodeInfo(v1nodeID);
 
-        HashMap weightByCandidate = new HashMap(); // (nodeid: int,
+        Map<Integer, Float> weightByCandidate = new HashMap<>(); // (nodeid: int,
 
         // weight:float)
         int childID = myV1AtomicInfo.firstChild;
@@ -416,12 +404,12 @@ public class NodesManager {
                 int v0childParent = childMatchInfo.myParent;
 
                 if (v0childParent != 0) {
-                    if (!weightByCandidate.containsKey(new Integer(v0childParent))) {
-                        weightByCandidate.put(new Integer(v0childParent), new Float(childInfo.myWeight));
+                    if (!weightByCandidate.containsKey(Integer.valueOf(v0childParent))) {
+                        weightByCandidate.put(v0childParent, (float) childInfo.myWeight);
                     } else {
-                        float weight = ((Float) weightByCandidate.get(new Integer(v0childParent))).floatValue();
+                        float weight = weightByCandidate.get(Integer.valueOf(v0childParent));
                         weight += childInfo.myWeight;
-                        weightByCandidate.put(new Integer(v0childParent), new Float(weight));
+                        weightByCandidate.put(v0childParent, weight);
                     }
                 }
             }
@@ -444,10 +432,9 @@ public class NodesManager {
         float max = (float) -1.0;
         int bestMatch = 0;
 
-        for (Iterator i = weightByCandidate.keySet().iterator(); i.hasNext();) {
-            Integer key = (Integer) i.next();
-            int first = key.intValue();
-            float second = ((Float) weightByCandidate.get(key)).floatValue();
+        for (Integer key : weightByCandidate.keySet()) {
+            int first = key;
+            float second = weightByCandidate.get(key);
 
             if (second > max) {
                 bestMatch = first;
@@ -471,13 +458,13 @@ public class NodesManager {
      */
     public void topDownMatch(int v0rootID, int v1rootID)
         throws Exception {
-        Vector toMatch = new Vector();
+        List<Integer> toMatch = new ArrayList<>();
 
-        toMatch.addElement(new Integer(v1rootID));
+        toMatch.add(v1rootID);
 
-        while (toMatch.size() > 0) {
+        while (!toMatch.isEmpty()) {
             // get node to investigate
-            int nodeID = ((Integer) toMatch.remove(0)).intValue(); // equivalent
+            int nodeID = toMatch.remove(0); // equivalent
             Hash32 v1hash = getV1NodeInfo(nodeID).mySubtreeHash;
 
             int matcher = 0;
@@ -498,7 +485,7 @@ public class NodesManager {
                 int childID = getV1NodeInfo(nodeID).firstChild;
 
                 while (childID != 0) {
-                    toMatch.addElement(new Integer(childID));
+                    toMatch.add(childID);
                     childID = getV1NodeInfo(childID).nextSibling;
                 }
             }
@@ -534,8 +521,6 @@ public class NodesManager {
         if (v1child != 0) {
             this.statsRecursiveAssignFailed++;
             System.err.println("recursiveAssign: expect child in v0 not found");
-
-            return;
         }
     }
 
@@ -545,7 +530,7 @@ public class NodesManager {
     // will be considered 'matching' the new node
     // Basically, the best is the old node somehow related to new node: parents
     // are matching for example
-    // If none has this property, and if hash_matching is *meaningfull* (text
+    // If none has this property, and if hash_matching is *meaningful* (text
     // length > ???) we may consider
     // returning any matching node
     // Maybe on a second level parents ?
@@ -555,17 +540,16 @@ public class NodesManager {
             //System.out.println("Out of getBestCandidate because the key is
             // not present");
             return 0;
-        } else {
-            CandidateSet secondz = getCandidatesByParentLevelByHash(0).get(selfkey);
+        }
+        CandidateSet secondz = getCandidatesByParentLevelByHash(0).get(selfkey);
 
-            if (secondz.size() == 0) {
-                //System.out.println("Out of getBestCandidate because there is
-                // no element for this key");
-                return 0;
-            }
+        if (secondz.size() == 0) {
+            //System.out.println("Out of getBestCandidate because there is
+            // no element for this key");
+            return 0;
         }
 
-        // first pass: finds a node which parent matches v1node parent (usefull
+        // first pass: finds a node which parent matches v1node parent (useful
         // because documents roots always match or parent
         // may be matched thanks to its unique label)
         int candidateRelativeLevel = 1;
@@ -609,7 +593,7 @@ public class NodesManager {
                         CandidateSet second = theIndex.get(tablekey.value);
 
                         for (int i = 0; i < second.size(); i++) {
-                            int c = second.elementAt(i);
+                            int c = second.get(i);
 
                             if (!v0Assigned(c)) {
                                 if (candidateRelativeLevel > 1) {
@@ -630,7 +614,7 @@ public class NodesManager {
                     CandidateSet second = getCandidatesByParentLevelByHash(0).get(selfkey);
 
                     for (int i = 0; i < second.size(); i++) {
-                        int candidate = second.elementAt(i);
+                        int candidate = second.get(i);
 
                         if (!v0Assigned(candidate)) { // node still not assigned
 
@@ -649,14 +633,12 @@ public class NodesManager {
 
                             // if relative is ok at required level, test
                             // matching
-                            if (I == candidateRelativeLevel) {
-                                if (getV0NodeInfo(candidateRelative).myMatchID == v1nodeRelative) {
-                                    if (candidateRelativeLevel > 1) {
-                                        forceParentsAssign(candidate, v1nodeID, candidateRelativeLevel);
-                                    }
-
-                                    return candidate;
+                            if ((I == candidateRelativeLevel) && (getV0NodeInfo(candidateRelative).myMatchID == v1nodeRelative)) {
+                                if (candidateRelativeLevel > 1) {
+                                    forceParentsAssign(candidate, v1nodeID, candidateRelativeLevel);
                                 }
+
+                                return candidate;
                             }
                         } // else : candidate was already assigned
                     } // try next candidate
@@ -678,7 +660,7 @@ public class NodesManager {
 
         // If node is matched, we can try to do some work
         // Get Free nodes in v0
-        HashMap v0freeChildren = new HashMap(); // Map(String, int)
+        Map<String, Integer> v0freeChildren = new HashMap<>(); // Map(String, int)
 
         if (v0Assigned(v0nodeID)) {
             int childID = myAtomicInfo.firstChild;
@@ -690,11 +672,11 @@ public class NodesManager {
                     if (child.allowChildren()) {
                         // Children is free !
                         if (v0freeChildren.containsKey(child.getId())) {
-                            v0freeChildren.put(child.getId(), (new Integer(-1)));
+                            v0freeChildren.put(child.getId(), (-1));
 
                             // But many have the same name...
                         } else {
-                            v0freeChildren.put(child.getId(), (new Integer(childID)));
+                            v0freeChildren.put(child.getId(), (childID));
                         }
                     }
                 }
@@ -706,7 +688,7 @@ public class NodesManager {
             int v1nodeID = myAtomicInfo.myMatchID;
             AtomicInfo v1AtomicInfo = this.getV1NodeInfo(v1nodeID);
 
-            HashMap v1freeChildren = new HashMap();
+            Map<String, Integer> v1freeChildren = new HashMap<>();
 
             if (v1Assigned(v1nodeID)) {
                 childID = v1AtomicInfo.firstChild;
@@ -719,11 +701,11 @@ public class NodesManager {
                             //String tag = child.getNodeName();
                             // v1 children is free
                             if (v1freeChildren.containsKey(child.getId())) {
-                                v1freeChildren.put(child.getId(), (new Integer(-1)));
+                                v1freeChildren.put(child.getId(), (-1));
 
                                 // But many have the same name...
                             } else {
-                                v1freeChildren.put(child.getId(), (new Integer(childID)));
+                                v1freeChildren.put(child.getId(), (childID));
                             }
                         }
                     }
@@ -733,13 +715,12 @@ public class NodesManager {
             }
 
             // Now match unique children
-            for (Iterator i = v0freeChildren.keySet().iterator(); i.hasNext();) {
-                String key = (String) i.next();
+            for (String key : v0freeChildren.keySet()) {
                 String first = key;
-                int second = ((Integer) v0freeChildren.get(key)).intValue();
+                int second = v0freeChildren.get(key);
 
                 if ((second > 0) && (v1freeChildren.containsKey(first))) {
-                    int v1ID = ((Integer) (v1freeChildren.get(first))).intValue();
+                    int v1ID = (v1freeChildren.get(first));
 
                     if (v1ID > 0) {
                         this.nodeAssign(second, v1ID);
@@ -779,12 +760,9 @@ public class NodesManager {
         // test if node is DELETED
         if (!v0Assigned(v0nodeID)) {
             myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_DELETED;
-        } else if (myAtomicInfo.myParent != 0) { // e.g if not ROOT
-
-            // test if node is a STRONG MOVE
-            if ((!v0Assigned(myAtomicInfo.myParent)) || (getV0NodeInfo(myAtomicInfo.myParent).myMatchID != getV1NodeInfo(myAtomicInfo.myMatchID).myParent)) {
-                myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_STRONGMOVE;
-            }
+        } else // test if node is a STRONG MOVE
+        if ((myAtomicInfo.myParent != 0) && ((!v0Assigned(myAtomicInfo.myParent)) || (getV0NodeInfo(myAtomicInfo.myParent).myMatchID != getV1NodeInfo(myAtomicInfo.myMatchID).myParent))) {
+            myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_STRONGMOVE;
         }
     }
 
@@ -801,17 +779,8 @@ public class NodesManager {
         // test if node is assigned
         if (!v1Assigned(v1nodeID)) {
             myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_INSERTED;
-        } else { // Node is INSERTED
-
-            int v0nodeID = myAtomicInfo.myMatchID;
-
-            // test if it is a STRONGMOVE
-            if (myAtomicInfo.myParent != 0) { // e.g. not root
-
-                if ((!v1Assigned(myAtomicInfo.myParent)) || (getV1NodeInfo(myAtomicInfo.myParent).myMatchID != getV0NodeInfo(myAtomicInfo.myMatchID).myParent)) {
-                    myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_STRONGMOVE;
-                }
-            }
+        } else if ((myAtomicInfo.myParent != 0) && ((!v1Assigned(myAtomicInfo.myParent)) || (getV1NodeInfo(myAtomicInfo.myParent).myMatchID != getV0NodeInfo(myAtomicInfo.myMatchID).myParent))) {
+            myAtomicInfo.myEvent = AtomicInfo.NODEEVENT_STRONGMOVE;
         }
     }
 
@@ -827,11 +796,7 @@ public class NodesManager {
             v0childID = getV0NodeInfo(v0childID).nextSibling;
         }
 
-        if (myAtomicInfo.firstChild == 0) {
-            return;
-        }
-
-        if (!v0Assigned(v0nodeID)) {
+        if ((myAtomicInfo.firstChild == 0) || !v0Assigned(v0nodeID)) {
             return;
         }
 
@@ -840,8 +805,8 @@ public class NodesManager {
 
         // Set Index to children of v0 node that are remaining on this node
         // Set 0 for others
-        Vector oldChildValue = new Vector(); // contains WSequence
-        oldChildValue.addElement(new WSequence(-1, 999000.0));
+        List<WSequence> oldChildValue = new ArrayList<>(); // contains WSequence
+        oldChildValue.add(new WSequence(-1, 999000.0));
 
         int index = 1;
         v0childID = myAtomicInfo.firstChild;
@@ -850,31 +815,27 @@ public class NodesManager {
             AtomicInfo childInfo = getV0NodeInfo(v0childID);
 
             if (childInfo.myEvent == AtomicInfo.NODEEVENT_NOP) {
-                oldChildValue.addElement(new WSequence(index++, childInfo.myWeight));
+                oldChildValue.add(new WSequence(index++, childInfo.myWeight));
             } else {
-                oldChildValue.addElement(new WSequence(0, 998000.0));
+                oldChildValue.add(new WSequence(0, 998000.0));
             }
 
             v0childID = childInfo.nextSibling;
         }
 
-        for (int i = 1; i < oldChildValue.size(); i++) {
-            WSequence wtmp = (WSequence) oldChildValue.elementAt(i);
-        }
-
-        Vector originalSequence = new Vector(); // contains WSequence
-        originalSequence.addElement(new WSequence(-1, 997000.0));
+        List<WSequence> originalSequence = new ArrayList<>(); // contains WSequence
+        originalSequence.add(new WSequence(-1, 997000.0));
 
         for (int i = 1; i < oldChildValue.size(); i++) {
-            if (((WSequence) oldChildValue.elementAt(i)).data != 0) {
-                originalSequence.addElement(oldChildValue.elementAt(i));
+            if (oldChildValue.get(i).data != 0) {
+                originalSequence.add(oldChildValue.get(i));
             }
         }
 
         // construct sequence with new orders of children, given their 'stable
         // index'
-        Vector finalSequence = new Vector(); // contains WSequence
-        finalSequence.addElement(new WSequence(-1, 996000.0));
+        List<WSequence> finalSequence = new ArrayList<>(); // contains WSequence
+        finalSequence.add(new WSequence(-1, 996000.0));
 
         int v1childID = getV1NodeInfo(v1nodeID).firstChild;
 
@@ -883,7 +844,7 @@ public class NodesManager {
 
             if (childInfo.myEvent == AtomicInfo.NODEEVENT_NOP) {
                 int originPos = getV0NodeInfo(childInfo.myMatchID).myPosition;
-                finalSequence.addElement(new WSequence(((WSequence) oldChildValue.elementAt(originPos)).data, childInfo.myWeight));
+                finalSequence.add(new WSequence(oldChildValue.get(originPos).data, childInfo.myWeight));
             }
 
             v1childID = childInfo.nextSibling;
@@ -903,7 +864,7 @@ public class NodesManager {
 
         while (v0childID != 0) {
             if (getV0NodeInfo(v0childID).myEvent == AtomicInfo.NODEEVENT_NOP) {
-                if (((WSequence) originalSequence.elementAt(index)).data == 0) {
+                if (originalSequence.get(index).data == 0) {
                     getV0NodeInfo(v0childID).myEvent = AtomicInfo.NODEEVENT_WEAKMOVE;
                     getV1NodeInfo(getV0NodeInfo(v0childID).myMatchID).myEvent = AtomicInfo.NODEEVENT_WEAKMOVE;
                 }
@@ -939,7 +900,6 @@ public class NodesManager {
             }
 
             if ((child0 != 0) && (!v0Assigned(child0)) && (myChild0Info.nextSibling == 0)) {
-                TreeNode tn = getV1NodeByID(v1AtomicInfo.myID);
 
                 int child1 = v1AtomicInfo.firstChild;
 
@@ -952,13 +912,12 @@ public class NodesManager {
                         TreeNode domChild1 = this.getV1NodeByID(child1);
 
                         if ((!domChild0.allowChildren()) && (!domChild1.allowChildren())) {
-                            if ((myChild0Info.myEvent == AtomicInfo.NODEEVENT_DELETED) && (myChild1Info.myEvent == AtomicInfo.NODEEVENT_INSERTED)) {
-                                // ---
-                                myChild0Info.myEvent = AtomicInfo.NODEEVENT_UPDATE_OLD;
-                                myChild1Info.myEvent = AtomicInfo.NODEEVENT_UPDATE_NEW;
-                            } else {
+                            if ((myChild0Info.myEvent != AtomicInfo.NODEEVENT_DELETED) || (myChild1Info.myEvent != AtomicInfo.NODEEVENT_INSERTED)) {
                                 throw new Exception("NodesManager: Update handler state is inconsistant");
                             }
+                            // ---
+                            myChild0Info.myEvent = AtomicInfo.NODEEVENT_UPDATE_OLD;
+                            myChild1Info.myEvent = AtomicInfo.NODEEVENT_UPDATE_NEW;
                         }
                     }
                 }
@@ -972,58 +931,5 @@ public class NodesManager {
             this.detectUpdate(childID);
             childID = (this.getV0NodeInfo(childID)).nextSibling;
         }
-    }
-}
-
-
-class IndexToCandidates {
-    private Hashtable candidateSets = new Hashtable(); // (key, CandidateSet)
-
-    public CandidateSet get(int key) {
-        //if (key == 0) {
-        //	System.out.println("ERROR IndexToCandidates.get: key is 0");
-        //} else {
-        //System.out.println("requesting CandidateSet with key=" +
-        // Integer.toHexString(key));
-        //}
-        CandidateSet cs = (CandidateSet) this.candidateSets.get(new Integer(key));
-
-        if (cs == null) {
-            // If cs is null allocate a new Candidate Set
-            cs = new CandidateSet();
-
-            //this.candidateSets.put(new Integer(key), cs);
-            put(key, cs);
-        }
-
-        return cs;
-    }
-
-    public void put(int key, CandidateSet cs) {
-        this.candidateSets.put(new Integer(key), cs);
-    }
-
-    public boolean containsKey(int key) throws Exception {
-        return this.candidateSets.containsKey(new Integer(key));
-    }
-}
-
-
-//	   Note that push_back must be used to add candidates (in postfix order)
-//	   Thus the ordering of children will be somehow taken into consideration during
-// lookup for the best candidate
-class CandidateSet {
-    private Vector v0node = new Vector(); // contient des int
-
-    public int size() {
-        return this.v0node.size();
-    }
-
-    public int elementAt(int i) {
-        return ((Integer) this.v0node.elementAt(i)).intValue();
-    }
-
-    public void addElement(int i) {
-        this.v0node.addElement(new Integer(i));
     }
 }
